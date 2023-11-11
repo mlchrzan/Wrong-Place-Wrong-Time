@@ -37,3 +37,20 @@ library(viridis)
 library(skimr)
 library(here)
 ```
+
+```{r read-in-data}
+
+#Opportunity Insights Data
+cz_coll_allSubgroups <- read_csv("cz_coll_allSubgroups.csv") |> 
+  clean_names() 
+
+cz_frac_coll_plus2016 <- read_csv("cz_frac_coll_plus2016.csv") |> 
+  clean_names()
+
+cz_hs_allSubgroups <- read_csv('cz_hs_allSubgroups.csv') |> 
+  clean_names()
+
+#Gentrification Data????
+
+#???
+```
