@@ -1,6 +1,7 @@
 ## Wrong Place, Wrong Time - A EDUC 423A Group Project Studying the Relationship Between Gentrification and School Outcomes
 
 NOTE: Original Project One-Pager (final project code may reflect changes to plans laid out in this document)
+
 Research Question | What relationship, if any, exists between gentrification, as operationalized by the Pearman and Greene (2022) model, and educational outcomes in San Francisco and Detroit between 2010 and 2020?
 
 Background | The urban fabric of American cities is in constant flux, influenced by various socio-economic and demographic factors. A significant agent of change in this context is gentrification. While the socio-economic implications of gentrification have been extensively studied, there remains a research gap concerning its relation to educational outcomes. This proposed research aims to address this lacuna by analyzing the correlations of gentrification with academic metrics in two emblematic American cities: San Francisco and Detroit. In the annals of urban transformation, San Francisco and Detroit provide contrasting trajectories. Historically a bastion of American manufacturing, Detroit has experienced a marked population decline over the last decade (Smith, J., 2021). In contrast, San Francisco, spurred by its status as a nexus of technological innovation, has been a harbinger of pronounced gentrification.
