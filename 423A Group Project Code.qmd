@@ -1,26 +1,39 @@
 ---
-title: "423A Group Project"
+title: "School Climate and Student Growth"
+author: "Michael O'key, Michael Chrzan, Laisha Ozuna"
+date: "`r Sys.Date()`"
 format: html
 editor: visual
 ---
 
-## Quarto
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+## Honor Code Statement
+
+We strongly encourage students to form study groups and students may discuss and work on assignments in groups. We expect that each student understands their own submission. As such, students must write their submissions independently and clearly disclose the names of all other students who were part of their study group. Additionally, lifting code or solutions directly from the internet (e.g., Google, GitHub, Stack Overflow) is a violation of the [Stanford Honor Code](https://communitystandards.stanford.edu/policies-and-guidance/honor-code). We take academic honesty and Honor Code violations extremely seriously and expect the same of students. If you have questions about what may or may not constitute an Honor Code violation, please reach out the teaching team.
+
+**Email: michael.okey\@stanford.edu, mlchrzan\@stanford.edu, lozuna\@stanford.edu**
+
+**SUID: ???, 05745732, ???**
+
+**Study Group: The authors**
+
+I acknowledge and agree to abide by the Honor Code.
+
+**Signed: Micael O'key, Michael Leon Chrzan, Laisha Ozuna**
 
 ## Running Code
 
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
-
-```{r}
-1 + 1
+```{r libraries, include=FALSE}
+library(tidyverse)
+library(tidytext)
+library(readxl)
+library(curl)
+library(janitor)
+library(RColorBrewer)
+library(viridis)
+library(skimr)
+library(here)
 ```
-
-You can add options to executable code like this
-
-```{r}
-#| echo: false
-2 * 2
-```
-
-The `echo: false` option disables the printing of code (only output is displayed).
