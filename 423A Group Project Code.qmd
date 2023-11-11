@@ -22,9 +22,11 @@ We strongly encourage students to form study groups and students may discuss and
 
 I acknowledge and agree to abide by the Honor Code.
 
-**Signed: Micael O'key, Michael Leon Chrzan, Laisha Ozuna**
+**Signed: Michael O'key, Michael Leon Chrzan, Laisha Ozuna**
 
 ## Running Code
+
+Research Question \| What relationship, if any, exists between gentrification, as operationalized by the Pearman and Greene (2022) model, and educational outcomes in San Francisco and Detroit between 2010 and 2020?
 
 ```{r libraries, include=FALSE}
 library(tidyverse)
@@ -53,4 +55,10 @@ cz_hs_allSubgroups <- read_csv('cz_hs_allSubgroups.csv') |>
 #Gentrification Data????
 
 #???
+```
+
+```{r preprocessing}
+skim(cz_coll_allSubgroups)
+skim(cz_frac_coll_plus2016)
+skim(cz_hs_allSubgroups)
 ```
