@@ -59,7 +59,7 @@ SanFran <- read_csv('SanFrancisco_typology_output.csv') |>
 #DETROIT???
 ```
 
-```{r filterCities}
+```{r combiningEdData}
 ed_outcomes_coll <- cz_coll_allSubgroups |> 
   filter(name == 'Detroit, MI' | name == 'San Francisco, CA')
 
@@ -69,20 +69,6 @@ ed_outcomes_fracColl <- cz_frac_coll_plus2016 |>
 ed_outcomes_hs <- cz_hs_allSubgroups |> 
   filter(name == 'Detroit, MI' | name == 'San Francisco, CA')
 
-```
-
-```{r}
-skim(ed_outcomes_coll)
-```
-
-```{r}
-skim(ed_outcomes_fracColl)
-```
-
-```{r}
-skim(ed_outcomes_hs)
-```
-
-```{r}
-skim(SanFran)
+all_ed_outcomes <- inner_join(ed_outcomes_coll, ed_outcomes_hs, 
+           by = c('cz', 'name'))
 ```
