@@ -40,7 +40,7 @@ library(skimr)
 library(here)
 ```
 
-```{r read-in-data}
+```{r read-in-data, include=FALSE}
 
 #Opportunity Insights Data
 cz_coll_allSubgroups <- read_csv("cz_coll_allSubgroups.csv") |> 
@@ -52,13 +52,37 @@ cz_frac_coll_plus2016 <- read_csv("cz_frac_coll_plus2016.csv") |>
 cz_hs_allSubgroups <- read_csv('cz_hs_allSubgroups.csv') |> 
   clean_names()
 
-#Gentrification Data????
+#Gentrification Data
+SanFran <- read_csv('SanFrancisco_typology_output.csv') |> 
+  clean_names()
 
-#???
+#DETROIT???
 ```
 
-```{r preprocessing}
-skim(cz_coll_allSubgroups)
-skim(cz_frac_coll_plus2016)
-skim(cz_hs_allSubgroups)
+```{r filterCities}
+ed_outcomes_coll <- cz_coll_allSubgroups |> 
+  filter(name == 'Detroit, MI' | name == 'San Francisco, CA')
+
+ed_outcomes_fracColl <- cz_frac_coll_plus2016 |> 
+  filter(name == 'Detroit, MI' | name == 'San Francisco, CA')
+
+ed_outcomes_hs <- cz_hs_allSubgroups |> 
+  filter(name == 'Detroit, MI' | name == 'San Francisco, CA')
+
+```
+
+```{r}
+skim(ed_outcomes_coll)
+```
+
+```{r}
+skim(ed_outcomes_fracColl)
+```
+
+```{r}
+skim(ed_outcomes_hs)
+```
+
+```{r}
+skim(SanFran)
 ```
