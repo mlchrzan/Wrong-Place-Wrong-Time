@@ -68,7 +68,7 @@ det_sf_gradRates <- inner_join(coll_gradRates, hs_gradRates,
            by = c('cz', 'name'))
 
 #Remove Late Cohorts
-det_sf_gradRates <- all_gradRates |> 
+det_sf_gradRates <- det_sf_gradRates |> 
   select(-ends_with("_l"))
 
 #Not Sure What We're Doing with this one?? 
