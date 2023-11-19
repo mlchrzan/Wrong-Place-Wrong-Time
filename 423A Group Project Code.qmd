@@ -32,6 +32,7 @@ Research Question \| What relationship, if any, exists between gentrification, a
 library(tidyverse)
 library(tidytext)
 library(readxl)
+library(stringr)
 library(curl)
 library(janitor)
 library(RColorBrewer)
@@ -43,32 +44,36 @@ library(here)
 ```{r read-in-data, include=FALSE}
 
 #Opportunity Insights Data
-cz_coll_allSubgroups <- read_csv("cz_coll_allSubgroups.csv") |> 
-  clean_names() 
+cz_coll_allSubgroups <- read_csv("cz_coll_allSubgroups.csv") 
 
-cz_frac_coll_plus2016 <- read_csv("cz_frac_coll_plus2016.csv") |> 
-  clean_names()
+cz_frac_coll_plus2016 <- read_csv("cz_frac_coll_plus2016.csv") 
 
-cz_hs_allSubgroups <- read_csv('cz_hs_allSubgroups.csv') |> 
-  clean_names()
+cz_hs_allSubgroups <- read_csv('cz_hs_allSubgroups.csv') 
 
 #Gentrification Data
-SanFran <- read_csv('SanFrancisco_typology_output.csv') |> 
-  clean_names()
+SanFran <- read_csv('SanFrancisco_typology_output.csv')
+
 
 #DETROIT???
 ```
 
-```{r combiningEdData}
-ed_outcomes_coll <- cz_coll_allSubgroups |> 
+```{r combiningGradRates}
+coll_gradRates <- cz_coll_allSubgroups |> 
   filter(name == 'Detroit, MI' | name == 'San Francisco, CA')
 
-ed_outcomes_fracColl <- cz_frac_coll_plus2016 |> 
+hs_gradRates <- cz_hs_allSubgroups |> 
   filter(name == 'Detroit, MI' | name == 'San Francisco, CA')
 
-ed_outcomes_hs <- cz_hs_allSubgroups |> 
-  filter(name == 'Detroit, MI' | name == 'San Francisco, CA')
-
-all_ed_outcomes <- inner_join(ed_outcomes_coll, ed_outcomes_hs, 
+det_sf_gradRates <- inner_join(coll_gradRates, hs_gradRates, 
            by = c('cz', 'name'))
+
+#Remove Late Cohorts
+det_sf_gradRates <- all_gradRates |> 
+  select(-ends_with("_l"))
+
+#Not Sure What We're Doing with this one?? 
+fracColl <- cz_frac_coll_plus2016 |> 
+  rename(name = Name) |> 
+  filter(name == 'Detroit, MI' | name == 'San Francisco, CA')
+
 ```
