@@ -31,15 +31,225 @@ Research Question \| What relationship, if any, exists between gentrification, a
 ```{r libraries, include=FALSE}
 library(tidyverse)
 library(tidytext)
-library(readxl)
 library(stringr)
+library(readxl)
 library(curl)
 library(janitor)
 library(RColorBrewer)
 library(viridis)
 library(skimr)
+library(cowplot)
 library(here)
 ```
+
+# Import Data
+
+```{r data, include=FALSE}
+det2020 <- read_csv("Detroit Housing Data/Detroit housing Data 2020.csv") |> clean_names()
+det2019 <- read_csv("Detroit Housing Data/Detroit housing Data 2019.csv") |> clean_names()
+det2018 <- read_csv("Detroit Housing Data/Detroit housing Data 2018.csv") |> clean_names()
+det2017 <- read_csv("Detroit Housing Data/Detroit housing Data 2017.csv") |> clean_names()
+det2016 <- read_csv("Detroit Housing Data/Detroit housing Data 2016.csv") |> clean_names()
+det2015 <- read_csv("Detroit Housing Data/Detroit housing Data 2015.csv") |> clean_names()
+det2014 <- read_csv("Detroit Housing Data/Detroit housing Data 2014.csv") |> clean_names()
+det2013 <- read_csv("Detroit Housing Data/Detroit housing Data 2013.csv") |> clean_names()
+det2012 <- read_csv("Detroit Housing Data/Detroit housing Data 2012.csv") |> clean_names()
+det2011 <- read_csv("Detroit Housing Data/Detroit housing Data 2011.csv") |> clean_names()
+det2010 <- read_csv("Detroit Housing Data/Detroit housing Data 2010.csv") |> clean_names()
+
+```
+
+# Detroit Housing Data Cleaning and Analysis 
+
+```{r restructure}
+# List of years
+years <- 2010:2020
+
+# Loop over each year
+for(year in years) {
+  # Construct the tibble name
+  tibble_name <- paste0("det", year)
+  
+  # Evaluate the tibble name to get the actual tibble
+  tibble <- eval(parse(text = tibble_name))
+  
+  # Perform the operations
+  tibble <- tibble |> 
+    select(-starts_with("units_in_structure"),
+           -starts_with("rooms"),
+           -starts_with("bedrooms"),
+           -starts_with("housing_tenure"),
+           -starts_with("vehicles_available"),
+           -starts_with("house_heating"),
+           -starts_with("selected_characteristics"),
+           -starts_with("occupants_per_room"), 
+           -starts_with("year_householder"),
+           -starts_with("selected_monthly_owner_costs"),
+           -starts_with("mortgage_status"),
+           -starts_with("year_structure_built"),
+           -contains("grapi"),
+           -housing_occupancy, 
+           -value, 
+           -mortgage_status,
+           -selected_monthly_owner_costs_smoc,
+           -gross_rent, 
+           -selected_monthly_owner_costs_as_a_percentage_of_household_income_smocapi, 
+           -selected_monthly_owner_costs_smoc,
+           -gross_rent_as_a_percentage_of_household_income_grapi) |> 
+    mutate(year = year)
+  
+  tibble <- tibble |> 
+    mutate(label_grouping = str_trim(label_grouping)) |> 
+    filter(label_grouping == 'Estimate') |> 
+    select(-label_grouping)
+  
+  #Assign the modified tibble back to the original tibble
+  assign(tibble_name, tibble, envir = .GlobalEnv)
+}
+
+det_data <- bind_rows(det2010, det2011, det2012,det2013, det2014, det2015, det2016, det2017, det2018, det2019, det2020) |> 
+  select(year, everything())
+
+det_data <- det_data |>
+  unite('occupied_housing_units', contains('occupied_housing_units'), na.rm = TRUE) |> 
+  unite('vacant_housing_units', contains('vacant_housing_units'), na.rm = TRUE) |> 
+  unite('homeowner_vacancy_rate', contains('homeowner_vacancy_rate'), na.rm = TRUE)  |> 
+  unite('rental_vacancy_rate', contains('rental_vacancy_rate'), na.rm = TRUE)  |> 
+  unite("value_less_than_50_000", contains("less_than_50_000"), na.rm = TRUE) |> 
+  unite("value_50_000_to_99_999", contains("50_000_to_99_999"), na.rm = TRUE) |> 
+  unite('value_100_000_to_149_999', contains('100_000_to_149_999'), na.rm = TRUE) |> 
+  unite('value_150_000_to_199_999', contains('150_000_to_199_999'), na.rm = TRUE) |> 
+  unite('value_200_000_to_299_999', contains('200_000_to_299_999'), na.rm = TRUE) |> 
+  unite('value_300_000_to_499_999', contains('300_000_to_499_999'), na.rm = TRUE) |> 
+  unite('value_500_000_to_999_999', contains('500_000_to_999_999'), na.rm = TRUE) |> 
+  unite('value_1_000_000_or_more', contains('1_000_000_or_more'), na.rm = TRUE) |> 
+  unite('value_median_dollars', value_median_dollars, value_owner_occupied_units_median_dollars, na.rm = TRUE) |> 
+  unite('gross_rent_median_dollars', gross_rent_median_dollars, gross_rent_occupied_units_paying_rent_median_dollars, na.rm = TRUE) |> 
+  unite('gross_rent_no_rent_paid', contains('no_rent_paid'), na.rm = TRUE) |> 
+  unite('gross_rent_1_500_or_more', gross_rent_1_500_or_more, gross_rent_occupied_units_paying_rent_1_500_or_more, na.rm = TRUE) |> 
+  unite("gross_rent_less_than_200", contains('rent_less_than_200'), na.rm = TRUE) |>
+  unite("gross_rent_200_to_299", contains('rent_200_to_299'), na.rm = TRUE) |> 
+  unite("gross_rent_300_to_499", contains('rent_300_to_499'), na.rm = TRUE) |> 
+  unite("gross_rent_500_to_749", contains('rent_500_to_749'), na.rm = TRUE) |> 
+  unite("gross_rent_750_to_999", contains('rent_750_to_999'), na.rm = TRUE) |> 
+  unite("gross_rent_1_000_to_1_499", contains('1_000_to_1_499'), na.rm = TRUE)
+  
+
+det_data <- det_data |>  
+  mutate(across(where(is.character), ~str_replace_all(., ',', ''))) |> 
+  mutate_all(as.numeric) |> 
+  mutate(structures_built = case_when(
+    year == 2014 ~ 6, 
+    year == 2015 ~ 45, 
+    year == 2016 ~ 173, 
+    year == 2017 ~ 202, 
+    year == 2018 ~ 467, 
+    year == 2019 ~ 1115, 
+    year == 2020 ~ 99))
+
+
+det_data <- det_data |> 
+  mutate(gross_rent_less_than_500 = gross_rent_less_than_200+gross_rent_200_to_299+gross_rent_300_to_499, 
+         gross_rent_500_to_999 = gross_rent_500_to_749 + gross_rent_750_to_999, 
+         gross_rent_1_500_or_more_occupied = gross_rent_occupied_units_paying_rent_1_500_to_1_999+gross_rent_occupied_units_paying_rent_2_000_to_2_499+gross_rent_occupied_units_paying_rent_2_500_to_2_999+gross_rent_occupied_units_paying_rent_3_000_or_more, 
+         .keep = "unused")
+
+det_data <- det_data |> 
+  unite("gross_rent_less_than_500", contains('rent_less_than_500'), na.rm = TRUE) |> 
+  unite("gross_rent_500_to_999", contains('rent_500_to_999'), na.rm = TRUE) |> 
+  unite("gross_rent_1_500_or_more", contains('1_500_or_more'), na.rm = TRUE) 
+
+det_data <- det_data |> 
+  select(year, structures_built, contains('median'), starts_with('value'), gross_rent_less_than_500, gross_rent_500_to_999, gross_rent_1_000_to_1_499, gross_rent_1_500_or_more, starts_with('gross'), everything())
+```
+
+```{r housing_viz}
+det_data |> 
+  ggplot() + 
+  geom_line(aes(x = year, 
+                y = value_median_dollars)) + 
+  geom_point(data = filter(det_data, year < 2014), 
+             aes(x = year, 
+                 y = value_median_dollars)) +
+  geom_point(aes(x = year, 
+                 y = value_median_dollars,
+                 color = 'red',
+                 size = structures_built)) +
+  
+  labs(title = "Is Detroit Gentrifying?", 
+       subtitle = 'Median Detroit Property Value, 2010-2020', 
+       x = 'Year',
+       y = 'Median Property Value') + 
+  scale_size(name = "Number of Structures Built") +
+  theme_minimal() + 
+  guides(color = 'none') +
+  theme(legend.position = 'bottom')  
+  
+  
+
+det_data |> 
+  ggplot() + 
+  geom_line(aes(x = year, 
+                y = gross_rent_median_dollars)) + 
+  geom_point(data = filter(det_data, year < 2014),
+             aes(x = year, 
+                 y = gross_rent_median_dollars)) +
+  geom_point(aes(x = year, 
+                 y = gross_rent_median_dollars,
+                 color = 'red',
+                 size = structures_built)) +
+  
+  labs(title = "Is Detroit Gentrifying?", 
+       subtitle = 'Median Detroit Rent Costs, 2010-2020', 
+       x = 'Year',
+       y = 'Median Rent Cost') + 
+  scale_size(name = "Number of Structures Built") +
+  guides(color = 'none') +
+  theme_minimal() +
+  theme(legend.position = 'bottom')
+```
+
+```{r}
+det_data |> 
+  pivot_longer(cols = c(value_less_than_50_000, value_50_000_to_99_999, value_100_000_to_149_999, value_150_000_to_199_999, value_200_000_to_299_999, value_300_000_to_499_999, value_500_000_to_999_999, value_1_000_000_or_more),
+               names_to = 'value_category', 
+               values_to = 'number_of_properties') |> 
+  select(year, value_median_dollars, value_category, number_of_properties) |> 
+  mutate(year = as.character(year), 
+         value_category = case_when(
+           value_category == 'value_less_than_50_000' ~ 'Less than $50k',
+           value_category == 'value_50_000_to_99_999' ~ '$50k - $99k', 
+           value_category == 'value_100_000_to_149_999' ~ '$100k - $149k', 
+           value_category == 'value_150_000_to_199_999' ~ '$150k - $199k', 
+           value_category == 'value_200_000_to_299_999' ~ '$200k - $299k',
+           value_category == 'value_300_000_to_499_999' ~ '$300k - $499k', 
+           value_category == 'value_500_000_to_999_999' ~ '$500k - $999k', 
+           value_category == 'value_1_000_000_or_more' ~ '$1000000+')) |> 
+  
+  ggplot() + 
+  geom_col(aes(x = factor(value_category, 
+                          levels = c('Less than $50k',
+                                     '$50k - $99k', 
+                                     '$100k - $149k', 
+                                     '$150k - $199k', 
+                                     '$200k - $299k',
+                                     '$300k - $499k', 
+                                     '$500k - $999k', 
+                                     '$1000000+'), 
+                          ordered = TRUE),
+               y = number_of_properties, 
+               fill = year), 
+           position = 'dodge') + 
+  labs(title = "Detroit's Housing Values are Increasing",
+       subtitle = "Detroit Housing Values, 2010-2020", 
+       x = 'Housing Value', 
+       y = 'Number of Properties') + 
+  coord_flip() +
+  scale_fill_viridis(discrete = TRUE) +
+  theme_minimal()
+```
+
+# Education Data
 
 ```{r read-in-data, include=FALSE}
 
