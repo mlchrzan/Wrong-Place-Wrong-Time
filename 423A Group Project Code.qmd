@@ -59,6 +59,23 @@ det2010 <- read_csv("Detroit Housing Data/Detroit housing Data 2010.csv") |> cle
 
 ```
 
+{r acs data}
+acs_detroit_2010 <- read_csv('/Users/laishaozuna/Downloads/302A_data/Booo-Gentrification/ACS_Detroit_2019_2022/ACSDP1Y2010.DP02-Data.csv')
+acs_detroit_2011 <- read_csv('ACSDtrt2011-Data.csv')
+acs_detroit_2012 <- read_csv('ACSDtrt2012-Data.csv')
+acs_detroit_2013 <- read_csv('ACSDtrt2013-Data.csv')
+acs_detroit_2014 <- read_csv('ACSDtrt2014-Data.csv')
+acs_detroit_2015 <- read_csv('ACSDtrt2015-Data.csv')
+acs_detroit_2016 <- read_csv('ACSDtrt2016-Data.csv')
+acs_detroit_2017 <- read_csv('ACSDtrt2017-Data.csv')
+acs_detroit_2018 <- read_csv('ACSDtrt2018-Data.csv')
+acs_detroit_2019 <- read_csv('/Users/laishaozuna/Downloads/302A_data/Booo-Gentrification/ACS_Detroit_2019_2022/ACSDP1Y2019.DP02-Data.csv')
+
+
+acs_sanfran_2010 <- read_csv('/Users/laishaozuna/Downloads/302A_data/Booo-Gentrification/ACS_SanFran_2010_2019/ACSDP1Y2010.DP02-Data.csv')
+acs_sanfran_2019 <- read_csv('/Users/laishaozuna/Downloads/302A_data/Booo-Gentrification/ACS_SanFran_2010_2019/ACSDP1Y2019.DP02-Data.csv')
+
+
 # Detroit Housing Data Cleaning and Analysis 
 
 ```{r restructure}
