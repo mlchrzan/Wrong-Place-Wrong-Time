@@ -44,7 +44,7 @@ library(here)
 
 # Import Data
 
-```{r data, include=FALSE}
+```{r housing-data, echo=FALSE, include=FALSE}
 det2020 <- read_csv("Detroit Housing Data/Detroit housing Data 2020.csv") |> clean_names()
 det2019 <- read_csv("Detroit Housing Data/Detroit housing Data 2019.csv") |> clean_names()
 det2018 <- read_csv("Detroit Housing Data/Detroit housing Data 2018.csv") |> clean_names()
@@ -59,18 +59,19 @@ det2010 <- read_csv("Detroit Housing Data/Detroit housing Data 2010.csv") |> cle
 
 ```
 
-```{r acs-data}
+```{r acs-ed-data, echo=FALSE, include=FALSE}
 
-acs_detroit_2010 <- read_csv('/Users/laishaozuna/Downloads/302A_data/Booo-Gentrification/ACS_Detroit_2019_2022/ACSDP1Y2010.DP02-Data.csv') 
-acs_detroit_2011 <- read_csv('ACSDtrt2011-Data.csv') 
-acs_detroit_2012 <- read_csv('ACSDtrt2012-Data.csv') 
-acs_detroit_2013 <- read_csv('ACSDtrt2013-Data.csv') 
-acs_detroit_2014 <- read_csv('ACSDtrt2014-Data.csv') 
-acs_detroit_2015 <- read_csv('ACSDtrt2015-Data.csv') 
-acs_detroit_2016 <- read_csv('ACSDtrt2016-Data.csv') 
-acs_detroit_2017 <- read_csv('ACSDtrt2017-Data.csv') 
-acs_detroit_2018 <- read_csv('ACSDtrt2018-Data.csv') 
-acs_detroit_2019 <- read_csv('/Users/laishaozuna/Downloads/302A_data/Booo-Gentrification/ACS_Detroit_2019_2022/ACSDP1Y2019.DP02-Data.csv')
+acs_detroit_2010 <- read_csv('ACS Detroit Education Data/ACSDtrt2010-Data.csv') 
+acs_detroit_2011 <- read_csv('ACS Detroit Education Data/ACSDtrt2011-Data.csv') 
+acs_detroit_2012 <- read_csv('ACS Detroit Education Data/ACSDtrt2012-Data.csv') 
+acs_detroit_2013 <- read_csv('ACS Detroit Education Data/ACSDtrt2013-Data.csv') 
+acs_detroit_2014 <- read_csv('ACS Detroit Education Data/ACSDtrt2014-Data.csv') 
+acs_detroit_2015 <- read_csv('ACS Detroit Education Data/ACSDtrt2015-Data.csv') 
+acs_detroit_2016 <- read_csv('ACS Detroit Education Data/ACSDtrt2016-Data.csv') 
+acs_detroit_2017 <- read_csv('ACS Detroit Education Data/ACSDtrt2017-Data.csv') 
+acs_detroit_2018 <- read_csv('ACS Detroit Education Data/ACSDtrt2018-Data.csv') 
+acs_detroit_2019 <- read_csv('ACS Detroit Education Data/ACSDtrt2019-Data.csv')
+acs_detroit_2019 <- read_csv('ACS Detroit Education Data/ACSDtrt2020-Data.csv')
 
 
 ```
@@ -263,6 +264,21 @@ det_data |>
   coord_flip() +
   scale_fill_viridis(discrete = TRUE) +
   theme_minimal()
+```
+
+# ACS Detroit Education Data Cleaning and Analysis
+
+```{r}
+
+
+```
+
+```{r}
+
+```
+
+```{r}
+
 ```
 
 # Education Data (Opportunity Insights)
