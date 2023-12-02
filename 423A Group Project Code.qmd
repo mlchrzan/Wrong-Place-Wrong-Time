@@ -627,7 +627,29 @@ educ_detroit |>
     theme_minimal()
 ```
 
-# Education Outcomes Data (Opportunity Insights)
+# Combining All ACS Data
+
+```{r join-acs}
+acs_all_data <- full_join(educ_detroit, det_data, 
+                          by = 'year')
+
+acs_all_data <- acs_all_data |> 
+  select(year, everything())
+```
+
+#  
+
+# Education Outcomes Data
+
+# NCES
+
+```{r}
+
+```
+
+#  
+
+# Opportunity Insights
 
 ```{r read-in-data, include=FALSE}
 
