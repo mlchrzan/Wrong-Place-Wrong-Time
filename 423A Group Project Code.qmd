@@ -71,14 +71,14 @@ acs_detroit_2016 <- read_csv('ACS Detroit Education Data/ACSDtrt2016-Data.csv')
 acs_detroit_2017 <- read_csv('ACS Detroit Education Data/ACSDtrt2017-Data.csv') 
 acs_detroit_2018 <- read_csv('ACS Detroit Education Data/ACSDtrt2018-Data.csv') 
 acs_detroit_2019 <- read_csv('ACS Detroit Education Data/ACSDtrt2019-Data.csv')
-acs_detroit_2019 <- read_csv('ACS Detroit Education Data/ACSDtrt2020-Data.csv')
+acs_detroit_2020 <- read_csv('ACS Detroit Education Data/ACSDtrt2020-Data.csv')
 
 
 ```
 
 # Detroit Housing Data Cleaning and Analysis
 
-```{r restructure}
+```{r clean-housing}
 # List of years
 years <- 2010:2020
 
@@ -180,7 +180,7 @@ det_data <- det_data |>
   select(year, structures_built, contains('median'), starts_with('value'), gross_rent_less_than_500, gross_rent_500_to_999, gross_rent_1_000_to_1_499, gross_rent_1_500_or_more, starts_with('gross'), everything())
 ```
 
-```{r housing_viz}
+```{r viz-housing-rent}
 det_data |> 
   ggplot() + 
   geom_line(aes(x = year, 
@@ -226,7 +226,7 @@ det_data |>
   theme(legend.position = 'bottom')
 ```
 
-```{r}
+```{r viz-housing-value}
 det_data |> 
   pivot_longer(cols = c(value_less_than_50_000, value_50_000_to_99_999, value_100_000_to_149_999, value_150_000_to_199_999, value_200_000_to_299_999, value_300_000_to_499_999, value_500_000_to_999_999, value_1_000_000_or_more),
                names_to = 'value_category', 
@@ -268,20 +268,366 @@ det_data |>
 
 # ACS Detroit Education Data Cleaning and Analysis
 
-```{r}
+```{r clean-columns}
+colnames(acs_detroit_2010) <- acs_detroit_2010[1, ]
+acs_detroit_2010 <- acs_detroit_2010[-1, ]
 
+colnames(acs_detroit_2011) <- acs_detroit_2011[1, ]
+acs_detroit_2011 <- acs_detroit_2011[-1, ]
+
+colnames(acs_detroit_2012) <- acs_detroit_2012[1, ]
+acs_detroit_2012 <- acs_detroit_2012[-1, ]
+
+colnames(acs_detroit_2013) <- acs_detroit_2013[1, ]
+acs_detroit_2013 <- acs_detroit_2013[-1, ]
+
+colnames(acs_detroit_2014) <- acs_detroit_2014[1, ]
+acs_detroit_2014 <- acs_detroit_2014[-1, ]
+
+colnames(acs_detroit_2015) <- acs_detroit_2015[1, ]
+acs_detroit_2015 <- acs_detroit_2015[-1, ]
+
+colnames(acs_detroit_2016) <- acs_detroit_2016[1, ]
+acs_detroit_2016 <- acs_detroit_2016[-1, ]
+
+colnames(acs_detroit_2017) <- acs_detroit_2017[1, ]
+acs_detroit_2017 <- acs_detroit_2017[-1, ]
+
+colnames(acs_detroit_2018) <- acs_detroit_2018[1, ]
+acs_detroit_2018 <- acs_detroit_2018[-1, ]
+
+colnames(acs_detroit_2019) <- acs_detroit_2019[1, ]
+acs_detroit_2019 <- acs_detroit_2019[-1, ]
+
+colnames(acs_detroit_2020) <- acs_detroit_2020[1, ]
+acs_detroit_2020 <- acs_detroit_2020[-1, ]
+```
+
+```{r clean-variables}
+#parse for educational attainment data
+educ_detroit_2010 <- acs_detroit_2010 |>
+  select(1:2, starts_with("Estimate!!EDUCATIONAL ATTAINMENT!!"), 
+         starts_with("Percent!!EDUCATIONAL ATTAINMENT!!")) |>
+  clean_names()
+
+educ_detroit_2011 <- acs_detroit_2011 |>
+  select(1:2, starts_with("Estimate!!EDUCATIONAL ATTAINMENT!!"), 
+         starts_with("Percent!!EDUCATIONAL ATTAINMENT!!")) |>
+  clean_names()
+
+educ_detroit_2012 <- acs_detroit_2012 |>
+  select(1:2, starts_with("Estimate!!EDUCATIONAL ATTAINMENT!!"), 
+         starts_with("Percent!!EDUCATIONAL ATTAINMENT!!")) |>
+  clean_names()
+
+educ_detroit_2013 <- acs_detroit_2013 |>
+  select(1:2, starts_with("Estimate!!EDUCATIONAL ATTAINMENT!!"), 
+         starts_with("Percent!!EDUCATIONAL ATTAINMENT!!")) |>
+  clean_names()
+
+educ_detroit_2014 <- acs_detroit_2014 |>
+  select(1:2, starts_with("Estimate!!EDUCATIONAL ATTAINMENT!!"), 
+         starts_with("Percent!!EDUCATIONAL ATTAINMENT!!")) |>
+   clean_names()
+
+educ_detroit_2015 <- acs_detroit_2015 |>
+  select(1:2, starts_with("Estimate!!EDUCATIONAL ATTAINMENT!!"), 
+         starts_with("Percent!!EDUCATIONAL ATTAINMENT!!")) |>
+   clean_names()
+
+educ_detroit_2016 <- acs_detroit_2016 |>
+  select(1:2, starts_with("Estimate!!EDUCATIONAL ATTAINMENT!!"), 
+         starts_with("Percent!!EDUCATIONAL ATTAINMENT!!")) |>
+   clean_names()
+
+educ_detroit_2017 <- acs_detroit_2017 |>
+  select(1:2, starts_with("Estimate!!EDUCATIONAL ATTAINMENT!!"), 
+         starts_with("Percent!!EDUCATIONAL ATTAINMENT!!")) |>
+   clean_names()
+
+educ_detroit_2018 <- acs_detroit_2018 |>
+  select(1:2, starts_with("Estimate!!EDUCATIONAL ATTAINMENT!!"), 
+         starts_with("Percent!!EDUCATIONAL ATTAINMENT!!")) |>
+  clean_names()
+
+educ_detroit_2019 <- acs_detroit_2019 |>
+  select(1:2, starts_with("Estimate!!EDUCATIONAL ATTAINMENT!!"), 
+         starts_with("Percent!!EDUCATIONAL ATTAINMENT!!")) |>
+   clean_names()
+
+educ_detroit_2020 <- acs_detroit_2020 |>
+  select(1:2, starts_with("Estimate!!EDUCATIONAL ATTAINMENT!!"), 
+         starts_with("Percent!!EDUCATIONAL ATTAINMENT!!")) |>
+   clean_names()
 
 ```
 
-```{r}
+```{r convert-to-numeric}
+convert_to_dbl <- function(x) {
+  ifelse(str_detect(x, "^\\d+\\.?\\d*$"), as.numeric(x), x)
+}
 
+# apply <dbl> to select columns and add year
+educ_detroit_2010 <- educ_detroit_2010 |>
+  mutate_all(convert_to_dbl) |>
+  mutate(year = 2010) |>
+  select(-estimate_educational_attainment_percent_high_school_graduate_or_higher, -estimate_educational_attainment_percent_bachelors_degree_or_higher)
+
+educ_detroit_2011 <- educ_detroit_2011 |>
+  mutate_all(convert_to_dbl) |>
+  mutate(year = 2011) |>
+  select(-estimate_educational_attainment_percent_high_school_graduate_or_higher, -estimate_educational_attainment_percent_bachelors_degree_or_higher)
+
+educ_detroit_2012 <- educ_detroit_2012 |>
+  mutate_all(convert_to_dbl) |>
+  mutate(year = 2012) |>
+  select(-estimate_educational_attainment_percent_high_school_graduate_or_higher, -estimate_educational_attainment_percent_bachelors_degree_or_higher)
+
+educ_detroit_2013 <- educ_detroit_2013 |>
+  mutate_all(convert_to_dbl) |>
+  mutate(year = 2013) |>
+  rename(estimate_educational_attainment_less_than_9th_grade =
+           "estimate_educational_attainment_population_25_years_and_over_less_than_9th_grade",
+         estimate_educational_attainment_9th_to_12th_grade_no_diploma = "estimate_educational_attainment_population_25_years_and_over_9th_to_12th_grade_no_diploma",
+         estimate_educational_attainment_high_school_graduate_includes_equivalency = "estimate_educational_attainment_population_25_years_and_over_high_school_graduate_includes_equivalency",
+         estimate_educational_attainment_some_college_no_degree = "estimate_educational_attainment_population_25_years_and_over_some_college_no_degree",
+         estimate_educational_attainment_associates_degree = "estimate_educational_attainment_population_25_years_and_over_associates_degree",
+         estimate_educational_attainment_bachelors_degree = "estimate_educational_attainment_population_25_years_and_over_bachelors_degree",
+         estimate_educational_attainment_graduate_or_professional_degree = "estimate_educational_attainment_population_25_years_and_over_graduate_or_professional_degree",
+         percent_educational_attainment_less_than_9th_grade = "percent_educational_attainment_population_25_years_and_over_less_than_9th_grade",
+         percent_educational_attainment_9th_to_12th_grade_no_diploma = "percent_educational_attainment_population_25_years_and_over_9th_to_12th_grade_no_diploma",
+         percent_educational_attainment_high_school_graduate_includes_equivalency = "percent_educational_attainment_population_25_years_and_over_high_school_graduate_includes_equivalency",
+         percent_educational_attainment_some_college_no_degree = "percent_educational_attainment_population_25_years_and_over_some_college_no_degree",
+         percent_educational_attainment_associates_degree = "percent_educational_attainment_population_25_years_and_over_associates_degree",
+         percent_educational_attainment_bachelors_degree = "percent_educational_attainment_population_25_years_and_over_bachelors_degree",
+         percent_educational_attainment_graduate_or_professional_degree = "percent_educational_attainment_population_25_years_and_over_graduate_or_professional_degree") |>
+  select(-estimate_educational_attainment_percent_high_school_graduate_or_higher, -estimate_educational_attainment_percent_bachelors_degree_or_higher)
+
+educ_detroit_2014 <- educ_detroit_2014 |>
+  mutate_all(convert_to_dbl) |>
+  mutate(year = 2014) |>
+  rename(estimate_educational_attainment_less_than_9th_grade =
+           "estimate_educational_attainment_population_25_years_and_over_less_than_9th_grade",
+         estimate_educational_attainment_9th_to_12th_grade_no_diploma = "estimate_educational_attainment_population_25_years_and_over_9th_to_12th_grade_no_diploma",
+         estimate_educational_attainment_high_school_graduate_includes_equivalency = "estimate_educational_attainment_population_25_years_and_over_high_school_graduate_includes_equivalency",
+         estimate_educational_attainment_some_college_no_degree = "estimate_educational_attainment_population_25_years_and_over_some_college_no_degree",
+         estimate_educational_attainment_associates_degree = "estimate_educational_attainment_population_25_years_and_over_associates_degree",
+         estimate_educational_attainment_bachelors_degree = "estimate_educational_attainment_population_25_years_and_over_bachelors_degree",
+         estimate_educational_attainment_graduate_or_professional_degree = "estimate_educational_attainment_population_25_years_and_over_graduate_or_professional_degree",
+         percent_educational_attainment_less_than_9th_grade = "percent_educational_attainment_population_25_years_and_over_less_than_9th_grade",
+         percent_educational_attainment_9th_to_12th_grade_no_diploma = "percent_educational_attainment_population_25_years_and_over_9th_to_12th_grade_no_diploma",
+         percent_educational_attainment_high_school_graduate_includes_equivalency = "percent_educational_attainment_population_25_years_and_over_high_school_graduate_includes_equivalency",
+         percent_educational_attainment_some_college_no_degree = "percent_educational_attainment_population_25_years_and_over_some_college_no_degree",
+         percent_educational_attainment_associates_degree = "percent_educational_attainment_population_25_years_and_over_associates_degree",
+         percent_educational_attainment_bachelors_degree = "percent_educational_attainment_population_25_years_and_over_bachelors_degree",
+         percent_educational_attainment_graduate_or_professional_degree = "percent_educational_attainment_population_25_years_and_over_graduate_or_professional_degree") |>
+  select(-estimate_educational_attainment_percent_high_school_graduate_or_higher, -estimate_educational_attainment_percent_bachelors_degree_or_higher)
+
+educ_detroit_2015 <- educ_detroit_2015 |>
+  mutate_all(convert_to_dbl) |>
+  mutate(year = 2015) |>
+  rename(estimate_educational_attainment_less_than_9th_grade =
+           "estimate_educational_attainment_population_25_years_and_over_less_than_9th_grade",
+         estimate_educational_attainment_9th_to_12th_grade_no_diploma = "estimate_educational_attainment_population_25_years_and_over_9th_to_12th_grade_no_diploma",
+         estimate_educational_attainment_high_school_graduate_includes_equivalency = "estimate_educational_attainment_population_25_years_and_over_high_school_graduate_includes_equivalency",
+         estimate_educational_attainment_some_college_no_degree = "estimate_educational_attainment_population_25_years_and_over_some_college_no_degree",
+         estimate_educational_attainment_associates_degree = "estimate_educational_attainment_population_25_years_and_over_associates_degree",
+         estimate_educational_attainment_bachelors_degree = "estimate_educational_attainment_population_25_years_and_over_bachelors_degree",
+         estimate_educational_attainment_graduate_or_professional_degree = "estimate_educational_attainment_population_25_years_and_over_graduate_or_professional_degree",
+         percent_educational_attainment_less_than_9th_grade = "percent_educational_attainment_population_25_years_and_over_less_than_9th_grade",
+         percent_educational_attainment_9th_to_12th_grade_no_diploma = "percent_educational_attainment_population_25_years_and_over_9th_to_12th_grade_no_diploma",
+         percent_educational_attainment_high_school_graduate_includes_equivalency = "percent_educational_attainment_population_25_years_and_over_high_school_graduate_includes_equivalency",
+         percent_educational_attainment_some_college_no_degree = "percent_educational_attainment_population_25_years_and_over_some_college_no_degree",
+         percent_educational_attainment_associates_degree = "percent_educational_attainment_population_25_years_and_over_associates_degree",
+         percent_educational_attainment_bachelors_degree = "percent_educational_attainment_population_25_years_and_over_bachelors_degree",
+         percent_educational_attainment_graduate_or_professional_degree = "percent_educational_attainment_population_25_years_and_over_graduate_or_professional_degree") |>
+  select(-estimate_educational_attainment_percent_high_school_graduate_or_higher, -estimate_educational_attainment_percent_bachelors_degree_or_higher)
+
+educ_detroit_2016 <- educ_detroit_2016 |>
+  mutate_all(convert_to_dbl) |>
+  mutate(year = 2016) |>
+  rename(estimate_educational_attainment_less_than_9th_grade =
+           "estimate_educational_attainment_population_25_years_and_over_less_than_9th_grade",
+         estimate_educational_attainment_9th_to_12th_grade_no_diploma = "estimate_educational_attainment_population_25_years_and_over_9th_to_12th_grade_no_diploma",
+         estimate_educational_attainment_high_school_graduate_includes_equivalency = "estimate_educational_attainment_population_25_years_and_over_high_school_graduate_includes_equivalency",
+         estimate_educational_attainment_some_college_no_degree = "estimate_educational_attainment_population_25_years_and_over_some_college_no_degree",
+         estimate_educational_attainment_associates_degree = "estimate_educational_attainment_population_25_years_and_over_associates_degree",
+         estimate_educational_attainment_bachelors_degree = "estimate_educational_attainment_population_25_years_and_over_bachelors_degree",
+         estimate_educational_attainment_graduate_or_professional_degree = "estimate_educational_attainment_population_25_years_and_over_graduate_or_professional_degree",
+         percent_educational_attainment_less_than_9th_grade = "percent_educational_attainment_population_25_years_and_over_less_than_9th_grade",
+         percent_educational_attainment_9th_to_12th_grade_no_diploma = "percent_educational_attainment_population_25_years_and_over_9th_to_12th_grade_no_diploma",
+         percent_educational_attainment_high_school_graduate_includes_equivalency = "percent_educational_attainment_population_25_years_and_over_high_school_graduate_includes_equivalency",
+         percent_educational_attainment_some_college_no_degree = "percent_educational_attainment_population_25_years_and_over_some_college_no_degree",
+         percent_educational_attainment_associates_degree = "percent_educational_attainment_population_25_years_and_over_associates_degree",
+         percent_educational_attainment_bachelors_degree = "percent_educational_attainment_population_25_years_and_over_bachelors_degree",
+         percent_educational_attainment_graduate_or_professional_degree = "percent_educational_attainment_population_25_years_and_over_graduate_or_professional_degree") |>
+  select(-estimate_educational_attainment_percent_high_school_graduate_or_higher, -estimate_educational_attainment_percent_bachelors_degree_or_higher)
+
+#Converstion Continued (blocks combined into one)
+educ_detroit_2017 <- educ_detroit_2017 |>
+  mutate_all(convert_to_dbl) |>
+  mutate(year = 2017) |>
+  rename(estimate_educational_attainment_less_than_9th_grade =
+           "estimate_educational_attainment_population_25_years_and_over_less_than_9th_grade",
+         estimate_educational_attainment_9th_to_12th_grade_no_diploma = "estimate_educational_attainment_population_25_years_and_over_9th_to_12th_grade_no_diploma",
+         estimate_educational_attainment_high_school_graduate_includes_equivalency = "estimate_educational_attainment_population_25_years_and_over_high_school_graduate_includes_equivalency",
+         estimate_educational_attainment_some_college_no_degree = "estimate_educational_attainment_population_25_years_and_over_some_college_no_degree",
+         estimate_educational_attainment_associates_degree = "estimate_educational_attainment_population_25_years_and_over_associates_degree",
+         estimate_educational_attainment_bachelors_degree = "estimate_educational_attainment_population_25_years_and_over_bachelors_degree",
+         estimate_educational_attainment_graduate_or_professional_degree = "estimate_educational_attainment_population_25_years_and_over_graduate_or_professional_degree",
+         percent_educational_attainment_less_than_9th_grade = "percent_educational_attainment_population_25_years_and_over_less_than_9th_grade",
+         percent_educational_attainment_9th_to_12th_grade_no_diploma = "percent_educational_attainment_population_25_years_and_over_9th_to_12th_grade_no_diploma",
+         percent_educational_attainment_high_school_graduate_includes_equivalency = "percent_educational_attainment_population_25_years_and_over_high_school_graduate_includes_equivalency",
+         percent_educational_attainment_some_college_no_degree = "percent_educational_attainment_population_25_years_and_over_some_college_no_degree",
+         percent_educational_attainment_associates_degree = "percent_educational_attainment_population_25_years_and_over_associates_degree",
+         percent_educational_attainment_bachelors_degree = "percent_educational_attainment_population_25_years_and_over_bachelors_degree",
+         percent_educational_attainment_graduate_or_professional_degree = "percent_educational_attainment_population_25_years_and_over_graduate_or_professional_degree") |>
+  select(-estimate_educational_attainment_percent_high_school_graduate_or_higher, -estimate_educational_attainment_percent_bachelors_degree_or_higher)
+
+educ_detroit_2018 <- educ_detroit_2018 |>
+  mutate_all(convert_to_dbl) |>
+  mutate(year = 2018) |>
+  rename(estimate_educational_attainment_less_than_9th_grade =
+           "estimate_educational_attainment_population_25_years_and_over_less_than_9th_grade",
+         estimate_educational_attainment_9th_to_12th_grade_no_diploma = "estimate_educational_attainment_population_25_years_and_over_9th_to_12th_grade_no_diploma",
+         estimate_educational_attainment_high_school_graduate_includes_equivalency = "estimate_educational_attainment_population_25_years_and_over_high_school_graduate_includes_equivalency",
+         estimate_educational_attainment_some_college_no_degree = "estimate_educational_attainment_population_25_years_and_over_some_college_no_degree",
+         estimate_educational_attainment_associates_degree = "estimate_educational_attainment_population_25_years_and_over_associates_degree",
+         estimate_educational_attainment_bachelors_degree = "estimate_educational_attainment_population_25_years_and_over_bachelors_degree",
+         estimate_educational_attainment_graduate_or_professional_degree = "estimate_educational_attainment_population_25_years_and_over_graduate_or_professional_degree") |>                            #add percentages
+  mutate(percent_educational_attainment_population_25_years_and_over = estimate_educational_attainment_population_25_years_and_over,
+         percent_educational_attainment_less_than_9th_grade = round((estimate_educational_attainment_less_than_9th_grade / estimate_educational_attainment_population_25_years_and_over) * 100, 1),
+         percent_educational_attainment_9th_to_12th_grade_no_diploma = round((estimate_educational_attainment_9th_to_12th_grade_no_diploma / estimate_educational_attainment_population_25_years_and_over) * 100, 1),
+         percent_educational_attainment_high_school_graduate_includes_equivalency = round((estimate_educational_attainment_high_school_graduate_includes_equivalency / estimate_educational_attainment_population_25_years_and_over) * 100, 1),
+         percent_educational_attainment_some_college_no_degree = round((estimate_educational_attainment_some_college_no_degree / estimate_educational_attainment_population_25_years_and_over) * 100, 1),
+         percent_educational_attainment_associates_degree = round((estimate_educational_attainment_associates_degree / estimate_educational_attainment_population_25_years_and_over) * 100, 1),
+         percent_educational_attainment_bachelors_degree = round((estimate_educational_attainment_bachelors_degree / estimate_educational_attainment_population_25_years_and_over) * 100, 1),
+         percent_educational_attainment_graduate_or_professional_degree = round((estimate_educational_attainment_graduate_or_professional_degree / estimate_educational_attainment_population_25_years_and_over) * 100, 1),
+         percent_educational_attainment_percent_high_school_graduate_or_higher = round((estimate_educational_attainment_population_25_years_and_over_high_school_graduate_or_higher / estimate_educational_attainment_population_25_years_and_over) * 100, 1),
+         percent_educational_attainment_percent_bachelors_degree_or_higher = round((estimate_educational_attainment_population_25_years_and_over_bachelors_degree_or_higher / estimate_educational_attainment_population_25_years_and_over) * 100, 1)) |>
+  select(-estimate_educational_attainment_population_25_years_and_over_high_school_graduate_or_higher, -estimate_educational_attainment_population_25_years_and_over_bachelors_degree_or_higher)
+  
+educ_detroit_2019 <- educ_detroit_2019 |>
+  mutate_all(convert_to_dbl) |>
+  mutate(year = 2019) |>
+  rename(estimate_educational_attainment_less_than_9th_grade =
+           "estimate_educational_attainment_population_25_years_and_over_less_than_9th_grade",
+         estimate_educational_attainment_9th_to_12th_grade_no_diploma = "estimate_educational_attainment_population_25_years_and_over_9th_to_12th_grade_no_diploma",
+         estimate_educational_attainment_high_school_graduate_includes_equivalency = "estimate_educational_attainment_population_25_years_and_over_high_school_graduate_includes_equivalency",
+         estimate_educational_attainment_some_college_no_degree = "estimate_educational_attainment_population_25_years_and_over_some_college_no_degree",
+         estimate_educational_attainment_associates_degree = "estimate_educational_attainment_population_25_years_and_over_associates_degree",
+         estimate_educational_attainment_bachelors_degree = "estimate_educational_attainment_population_25_years_and_over_bachelors_degree",
+         estimate_educational_attainment_graduate_or_professional_degree = "estimate_educational_attainment_population_25_years_and_over_graduate_or_professional_degree",
+         percent_educational_attainment_less_than_9th_grade = "percent_educational_attainment_population_25_years_and_over_less_than_9th_grade",
+         percent_educational_attainment_9th_to_12th_grade_no_diploma = "percent_educational_attainment_population_25_years_and_over_9th_to_12th_grade_no_diploma",
+         percent_educational_attainment_high_school_graduate_includes_equivalency = "percent_educational_attainment_population_25_years_and_over_high_school_graduate_includes_equivalency",
+         percent_educational_attainment_some_college_no_degree = "percent_educational_attainment_population_25_years_and_over_some_college_no_degree",
+         percent_educational_attainment_associates_degree = "percent_educational_attainment_population_25_years_and_over_associates_degree",
+         percent_educational_attainment_bachelors_degree = "percent_educational_attainment_population_25_years_and_over_bachelors_degree",
+         percent_educational_attainment_graduate_or_professional_degree = "percent_educational_attainment_population_25_years_and_over_graduate_or_professional_degree",
+         percent_educational_attainment_percent_high_school_graduate_or_higher = "percent_educational_attainment_population_25_years_and_over_high_school_graduate_or_higher",
+         percent_educational_attainment_percent_bachelors_degree_or_higher = "percent_educational_attainment_population_25_years_and_over_bachelors_degree_or_higher"  
+         ) |>
+  select(-estimate_educational_attainment_population_25_years_and_over_high_school_graduate_or_higher, -estimate_educational_attainment_population_25_years_and_over_bachelors_degree_or_higher)
+
+educ_detroit_2020 <- educ_detroit_2020 |>
+  mutate_all(convert_to_dbl) |>
+  mutate(year = 2020) |>
+  rename(estimate_educational_attainment_less_than_9th_grade =
+           "estimate_educational_attainment_population_25_years_and_over_less_than_9th_grade",
+         estimate_educational_attainment_9th_to_12th_grade_no_diploma = "estimate_educational_attainment_population_25_years_and_over_9th_to_12th_grade_no_diploma",
+         estimate_educational_attainment_high_school_graduate_includes_equivalency = "estimate_educational_attainment_population_25_years_and_over_high_school_graduate_includes_equivalency",
+         estimate_educational_attainment_some_college_no_degree = "estimate_educational_attainment_population_25_years_and_over_some_college_no_degree",
+         estimate_educational_attainment_associates_degree = "estimate_educational_attainment_population_25_years_and_over_associates_degree",
+         estimate_educational_attainment_bachelors_degree = "estimate_educational_attainment_population_25_years_and_over_bachelors_degree",
+         estimate_educational_attainment_graduate_or_professional_degree = "estimate_educational_attainment_population_25_years_and_over_graduate_or_professional_degree",
+         percent_educational_attainment_less_than_9th_grade = "percent_educational_attainment_population_25_years_and_over_less_than_9th_grade",
+         percent_educational_attainment_9th_to_12th_grade_no_diploma = "percent_educational_attainment_population_25_years_and_over_9th_to_12th_grade_no_diploma",
+         percent_educational_attainment_high_school_graduate_includes_equivalency = "percent_educational_attainment_population_25_years_and_over_high_school_graduate_includes_equivalency",
+         percent_educational_attainment_some_college_no_degree = "percent_educational_attainment_population_25_years_and_over_some_college_no_degree",
+         percent_educational_attainment_associates_degree = "percent_educational_attainment_population_25_years_and_over_associates_degree",
+         percent_educational_attainment_bachelors_degree = "percent_educational_attainment_population_25_years_and_over_bachelors_degree",
+         percent_educational_attainment_graduate_or_professional_degree = "percent_educational_attainment_population_25_years_and_over_graduate_or_professional_degree",
+         percent_educational_attainment_percent_high_school_graduate_or_higher = "percent_educational_attainment_population_25_years_and_over_high_school_graduate_or_higher",
+         percent_educational_attainment_percent_bachelors_degree_or_higher = "percent_educational_attainment_population_25_years_and_over_bachelors_degree_or_higher"  
+         ) |>
+  select(-estimate_educational_attainment_population_25_years_and_over_high_school_graduate_or_higher, -estimate_educational_attainment_population_25_years_and_over_bachelors_degree_or_higher)
 ```
 
-```{r}
-
+```{r bind-ed-acs-data}
+educ_detroit <- bind_rows(educ_detroit_2010,
+                          educ_detroit_2011,
+                          educ_detroit_2012,
+                          educ_detroit_2013,
+                          educ_detroit_2014,
+                          educ_detroit_2015,
+                          educ_detroit_2016,
+                          educ_detroit_2017,
+                          educ_detroit_2018,
+                          educ_detroit_2019,
+                          educ_detroit_2020)
 ```
 
-# Education Data (Opportunity Insights)
+```{r viz-acs-ed-1}
+ggplot(educ_detroit, aes(x = factor(year), group = 1)) +
+  geom_line(aes(y = percent_educational_attainment_9th_to_12th_grade_no_diploma, 
+                color = "No High School Diploma"), linewidth = 1) +
+  geom_line(aes(y = percent_educational_attainment_high_school_graduate_includes_equivalency,
+                color = "GED"), linewidth = 1) +
+  geom_line(aes(y = percent_educational_attainment_some_college_no_degree, 
+                color = "Some college"), linewidth = 1) +
+  geom_line(aes(y = percent_educational_attainment_associates_degree, 
+                color = "Associate's Degree"), linewidth = 1) +
+  geom_line(aes(y = percent_educational_attainment_bachelors_degree, 
+                color = "Bachelor's Degree"), linewidth = 1) +
+  geom_line(aes(y = percent_educational_attainment_graduate_or_professional_degree, 
+                color = "PhD"), linewidth = 1) +
+  labs(title = "Population and Education Trends in Detroit, MI",
+       x = "\nYear",
+       y = "% of Population\n",
+       color = "") +
+  scale_color_manual(values = c("No High School Diploma" = "blue",
+                                "GED" = "purple",
+                                "Some college" = "pink",
+                                "Associate's Degree" = "gray",
+                                "Bachelor's Degree" = "green", 
+                                "PhD" = "red"),
+                     breaks = c("No High School Diploma",
+                                "GED",
+                                "Some college",
+                                "Associate's Degree",
+                                "Bachelor's Degree",
+                                "PhD")) +
+  geom_vline(xintercept = c("2019"), linetype = "dashed", color = "gray", linewidth = 1) +
+  theme_minimal() +
+  scale_x_discrete(labels = educ_detroit$year) +
+  theme(axis.text.x = element_text(hjust = 0.8, angle = 45, vjust=0.5)) 
+```
+
+```{r viz-acs-ed-2}
+educ_detroit |>
+  select(year, 
+         percent_bachelors_or_higher = percent_educational_attainment_percent_bachelors_degree_or_higher,
+         percent_high_school_or_higher = percent_educational_attainment_percent_high_school_graduate_or_higher) |>
+  pivot_longer(cols = -year, 
+               names_to = "educational_attainment",
+               values_to = "percentage") |>
+  mutate(educational_attainment = gsub("percent_", "", educational_attainment),
+         educational_attainment = factor(educational_attainment, 
+                                         levels = c("high_school_or_higher", "bachelors_or_higher"))) |>
+  ggplot(aes(x = year, y = percentage, fill = educational_attainment)) +
+    geom_area(position = "identity", alpha = 0.7) +
+    scale_fill_manual(values = c("high_school_or_higher" = "purple", "bachelors_or_higher" = "green"),
+                      name = "Educational Attainment",
+                      labels = c("high_school_or_higher" = "GED or higher", "bachelors_or_higher" = "Bachelor's or higher")) +
+    labs(title = "Educational Attainment in Detroit",
+         x = "\nYear",
+         y = "% of Population\n",
+         fill = "Educational Attainment") +
+    theme_minimal()
+```
+
+# Education Outcomes Data (Opportunity Insights)
 
 ```{r read-in-data, include=FALSE}
 
