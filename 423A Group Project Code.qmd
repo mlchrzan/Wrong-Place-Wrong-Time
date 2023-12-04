@@ -73,10 +73,31 @@ acs_detroit_2018 <- read_csv('ACS Detroit Education Data/ACSDtrt2018-Data.csv')
 acs_detroit_2019 <- read_csv('ACS Detroit Education Data/ACSDtrt2019-Data.csv')
 acs_detroit_2020 <- read_csv('ACS Detroit Education Data/ACSDtrt2020-Data.csv')
 
+```
+
+```{r nces-data, echo=FALSE, include=FALSE}
+#Combined Years (from NCES download)
+nces2011 <- read_csv('NCES Data/Combined/(2010-2011) Combined.csv') |> clean_names()
+nces2012 <- read_csv('NCES Data/Combined/(2011-2012) Combined.csv') |> clean_names()
+nces2013 <- read_csv('NCES Data/Combined/(2012-2013) Combined.csv') |> clean_names()
+nces2014 <- read_csv('NCES Data/Combined/(2013-2014) Combined.csv') |> clean_names()
+
+#Readiness
+nces2016_readiness <- read_csv('NCES Data/Readiness/(2015-2016) College Readiness.csv') |> clean_names()
+nces2017_readiness <- read_csv('NCES Data/Readiness/(2016-2017) College Readiness.csv') |> clean_names()
+nces2018_readiness <- read_csv('NCES Data/Readiness/(2017-2018) College Readiness.csv') |> clean_names()
+nces2019_readiness <- read_csv('NCES Data/Readiness/(2018-2019) College Readiness.csv') |> clean_names()
+
+#Growth
+nces2017_growth <- read_csv('NCES Data/Growth/(2016-2017) Student Growth.csv') |> clean_names()
+nces2018_growth <- read_csv('NCES Data/Growth/(2017-2018) Student Growth (2017-18).csv') |> clean_names()
+nces2019_growth <- read_csv('NCES Data/Growth/(2018-2019) Student Growth.csv') |> clean_names()
 
 ```
 
-# Detroit Housing Data Cleaning and Analysis
+# Gentrification Data
+
+## ACS Housing Data 
 
 ```{r clean-housing}
 # List of years
@@ -266,7 +287,7 @@ det_data |>
   theme_minimal()
 ```
 
-# ACS Detroit Education Data Cleaning and Analysis
+## ACS Education Data Cleaning and Analysis
 
 ```{r clean-columns}
 colnames(acs_detroit_2010) <- acs_detroit_2010[1, ]
@@ -627,7 +648,7 @@ educ_detroit |>
     theme_minimal()
 ```
 
-# Combining All ACS Data
+## Combining All ACS Data
 
 ```{r join-acs}
 acs_all_data <- full_join(educ_detroit, det_data, 
@@ -637,17 +658,136 @@ acs_all_data <- acs_all_data |>
   select(year, everything())
 ```
 
-#  
+# 
 
 # Education Outcomes Data
 
-# NCES
+## NCES Data Cleaning and Analysis
 
-```{r}
+```{r combined-data-set}
+#Filtering for DPSCD District Level Data 
+nces2011 <- nces2011 |> 
+  filter(district_code == 82015 & entity_type == "LEA District") |> 
+  mutate(year = '2011') 
+nces2012 <- nces2012 |> 
+  filter(district_code == 82015 & entity_type == "LEA District") |> 
+  mutate(year = '2012')
+nces2013 <- nces2013 |> 
+  filter(district_code == 82015 & entity_type == "LEA District") |> 
+  mutate(year = '2013')
+nces2014 <- nces2014 |> 
+  filter(district_code == 82015 & entity_type == "LEA District") |> 
+  mutate(year = '2014') 
 
+nces_11_14 <- bind_rows(nces2011, 
+                        nces2012, 
+                        nces2013, 
+                        nces2014) |> 
+  select(year, 
+         everything())
+
+nces_11_14 |> 
+  select(year, 
+         contains('enrollment'), 
+         contains('percent'), 
+         contains('rate'))
+
+#Trying to Align with Growth Data
+nces_11_14 |> 
+  pivot_longer(cols = ends_with('tested'), 
+               names_to = 'grade_sub_tested',
+               values_to = 'num_tested') |> 
+  pivot_longer(cols = ends_with('proficient'), 
+               names_to = 'grade_proficient', 
+               values_to = 'num_proficient') |> 
+  mutate(grade_sub_tested = str_replace(grade_sub_tested, "_tested$", ""),
+         grade_proficient = str_replace(grade_proficient, "_proficient$", "")) |> 
+  filter(grade_sub_tested == grade_proficient) |> 
+  mutate(percent_proficient = 100*as.numeric(num_proficient)/as.numeric(num_tested)) |> 
+  select(year, 
+         contains('enrollment'), 
+         graduation_rate_4_year, 
+         dropout_rate_4_year, 
+         grade_sub_tested, 
+         num_tested, 
+         num_proficient, 
+         percent_proficient, 
+         -grade_proficient) |> 
+  filter(!str_detect(grade_sub_tested, "social_studies"),
+         !str_detect(grade_sub_tested, "science"),
+         !str_detect(grade_sub_tested, "grade_3"))
+
+#Trying to Align with College Readiness Data (!!!!english & reading vs ebrw issue)
+nces_11_14 |> 
+  select(year, 
+         contains('enrollment'), 
+         graduation_rate_4_year, 
+         dropout_rate_4_year, 
+         contains('ready'))
 ```
 
-#  
+```{r growth-data-set}
+nces2017_growth |> 
+  filter(district_code == '82015' & building_name == 'All Buildings' & testing_group == 'All Students') |> 
+  select(grade, subject, testing_group, contains('percent')) |> 
+  filter(!str_detect(subject, "Science"), 
+         !str_detect(grade, "All Grades"))
+#How do we want to handle reading& writing vs. English Language Arts in the above code?? !!!!!
+
+#(includes science)
+nces2017_growth |> 
+  filter(district_code == '82015' & building_name == 'All Buildings' & testing_group == 'All Students') |> 
+  mutate(year = 2017) |> 
+  select(year, 
+         grade, 
+         subject, 
+         testing_group, 
+         contains('percent'), 
+         -testing_group) |> 
+  filter(!str_detect(grade, "All Grades"), 
+         grade == '11')
+```
+
+```{r readiness}
+nces2016_readiness <- nces2016_readiness |> 
+  filter(district_code == '82015' & building_name == 'All Buildings' & subgroup == 'All Students') |> 
+  mutate(year = 2016) |> 
+  select(year, 
+         math_percent_ready, 
+         ebrw_percent_ready, 
+         all_subject_percent_ready)
+
+nces2017_readiness <- nces2017_readiness |> 
+  filter(district_code == '82015' & building_name == 'All Buildings' & subgroup == 'All Students') |> 
+  mutate(year = 2017) |> 
+  select(year, 
+         math_percent_ready, 
+         ebrw_percent_ready, 
+         all_subject_percent_ready)
+
+nces2018_readiness <- nces2018_readiness |> 
+  filter(district_code == '82015' & building_name == 'All Buildings' & subgroup == 'All Students') |> 
+  mutate(year = 2018) |> 
+  select(year, 
+         math_percent_ready, 
+         ebrw_percent_ready, 
+         all_subject_percent_ready)
+
+nces2019_readiness <- nces2019_readiness |> 
+  filter(district_code == '82015' & building_name == 'All Buildings' & subgroup == 'All Students') |> 
+  mutate(year = 2019) |> 
+  select(year, 
+         math_percent_ready, 
+         ebrw_percent_ready, 
+         all_subject_percent_ready)
+
+nces_16_19_readiness <- bind_rows(nces2016_readiness, 
+                                  nces2017_readiness, 
+                                  nces2018_readiness, 
+                                  nces2019_readiness)
+
+nces_16_19_readiness
+```
 
 # Opportunity Insights
 
@@ -660,30 +800,25 @@ cz_frac_coll_plus2016 <- read_csv("cz_frac_coll_plus2016.csv")
 
 cz_hs_allSubgroups <- read_csv('cz_hs_allSubgroups.csv') 
 
-#Gentrification Data
-SanFran <- read_csv('SanFrancisco_typology_output.csv')
-
-
-#DETROIT???
 ```
 
 ```{r combiningGradRates}
 coll_gradRates <- cz_coll_allSubgroups |> 
-  filter(name == 'Detroit, MI' | name == 'San Francisco, CA')
+  filter(name == 'Detroit, MI')
 
 hs_gradRates <- cz_hs_allSubgroups |> 
-  filter(name == 'Detroit, MI' | name == 'San Francisco, CA')
+  filter(name == 'Detroit, MI')
 
-det_sf_gradRates <- inner_join(coll_gradRates, hs_gradRates, 
+det_gradRates <- inner_join(coll_gradRates, hs_gradRates, 
            by = c('cz', 'name'))
 
 #Remove Late Cohorts
-det_sf_gradRates <- det_sf_gradRates |> 
+det_gradRates <- det_gradRates |> 
   select(-ends_with("_l"))
 
 #Not Sure What We're Doing with this one?? 
 fracColl <- cz_frac_coll_plus2016 |> 
   rename(name = Name) |> 
-  filter(name == 'Detroit, MI' | name == 'San Francisco, CA')
+  filter(name == 'Detroit, MI')
 
 ```
