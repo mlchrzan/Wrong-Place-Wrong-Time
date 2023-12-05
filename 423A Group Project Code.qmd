@@ -81,6 +81,11 @@ nces2011 <- read_csv('NCES Data/Combined/(2010-2011) Combined.csv') |> clean_nam
 nces2012 <- read_csv('NCES Data/Combined/(2011-2012) Combined.csv') |> clean_names()
 nces2013 <- read_csv('NCES Data/Combined/(2012-2013) Combined.csv') |> clean_names()
 nces2014 <- read_csv('NCES Data/Combined/(2013-2014) Combined.csv') |> clean_names()
+nces2015 <- read_csv('NCES Data/Combined/(2014-2015) Combined.csv') |> clean_names()
+nces2016 <- read_csv('NCES Data/Combined/(2015-2016) Combined.csv') |> clean_names()
+nces2017 <- read_csv('NCES Data/Combined/(2016-2017) Combined.csv') |> clean_names()
+nces2018 <- read_csv('NCES Data/Combined/(2017-2018) Combined.csv') |> clean_names()
+
 
 #Readiness
 nces2016_readiness <- read_csv('NCES Data/Readiness/(2015-2016) College Readiness.csv') |> clean_names()
@@ -97,7 +102,7 @@ nces2019_growth <- read_csv('NCES Data/Growth/(2018-2019) Student Growth.csv') |
 
 # Gentrification Data
 
-## ACS Housing Data 
+## ACS Housing Data
 
 ```{r clean-housing}
 # List of years
@@ -665,35 +670,52 @@ acs_all_data <- acs_all_data |>
 ## NCES Data Cleaning and Analysis
 
 ```{r combined-data-set}
-#Filtering for DPSCD District Level Data 
-nces2011 <- nces2011 |> 
-  filter(district_code == 82015 & entity_type == "LEA District") |> 
-  mutate(year = '2011') 
-nces2012 <- nces2012 |> 
-  filter(district_code == 82015 & entity_type == "LEA District") |> 
-  mutate(year = '2012')
-nces2013 <- nces2013 |> 
-  filter(district_code == 82015 & entity_type == "LEA District") |> 
-  mutate(year = '2013')
-nces2014 <- nces2014 |> 
-  filter(district_code == 82015 & entity_type == "LEA District") |> 
-  mutate(year = '2014') 
+#Converstion of all variables to a character value for joining
+all_objects <- ls()
 
-nces_11_14 <- bind_rows(nces2011, 
-                        nces2012, 
-                        nces2013, 
-                        nces2014) |> 
-  select(year, 
-         everything())
+#Filter the list of objects based on the naming convention "ncesYYYY"
+nces_objects <- all_objects[str_detect(all_objects, "^nces\\d{4}$")]
 
-nces_11_14 |> 
+#Loop over the filtered list of objects
+for (obj_name in nces_objects) {
+  #Get the actual object from its name
+  obj <- get(obj_name)
+  
+  #Check if the object is a tibble
+  if (is_tibble(obj)) {
+    
+    #Convert all variables to character
+    obj <- obj |> 
+      mutate(across(everything(), as.character))
+    
+    #Filtering for DPSCD District Level Data 
+    obj <- obj |>  
+      filter(district_code == 82015 & entity_type == "LEA District") |>  
+      mutate(year = substr(obj_name, 5, 8))
+    
+    #Assign the modified object back to its original name in the global environment
+    assign(obj_name, obj, envir = .GlobalEnv)
+  }
+}
+
+nces_allYears <- bind_rows(nces2011, 
+                           nces2012, 
+                           nces2013, 
+                           nces2014, 
+                           nces2015, 
+                           nces2016, 
+                           nces2017, 
+                           nces2018) |> 
+  select(year, everything())
+
+nces_allYears |> 
   select(year, 
          contains('enrollment'), 
          contains('percent'), 
          contains('rate'))
 
 #Trying to Align with Growth Data
-nces_11_14 |> 
+nces_allYears |> 
   pivot_longer(cols = ends_with('tested'), 
                names_to = 'grade_sub_tested',
                values_to = 'num_tested') |> 
@@ -718,12 +740,14 @@ nces_11_14 |>
          !str_detect(grade_sub_tested, "grade_3"))
 
 #Trying to Align with College Readiness Data (!!!!english & reading vs ebrw issue)
-nces_11_14 |> 
+nces_allYears |> 
   select(year, 
          contains('enrollment'), 
          graduation_rate_4_year, 
          dropout_rate_4_year, 
          contains('ready'))
+
+
 ```
 
 ```{r growth-data-set}
