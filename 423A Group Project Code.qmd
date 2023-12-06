@@ -39,6 +39,7 @@ library(RColorBrewer)
 library(viridis)
 library(skimr)
 library(cowplot)
+library(ggrepel)
 library(here)
 ```
 
@@ -787,8 +788,65 @@ acs_nces_data |>
   mutate(year = as.character(year)) |> 
   ggplot() + 
   geom_point(aes(x = year, 
-                 y = gross_rent_1_500_or_more, 
-                 size = total_enrollment))
+                 y = gross_rent_median_dollars, 
+                 size = total_enrollment)) 
+
+acs_nces_data |> 
+  mutate(year = as.character(year)) |> 
+  ggplot(aes(x = total_enrollment, 
+                 y = gross_rent_median_dollars)) + 
+  geom_point() + 
+  geom_smooth(method = 'lm') +
+  geom_text_repel(aes(label = year))
+```
+
+```{r}
+
+acs_nces_data |> 
+  mutate(pct_econ_disadv_enrollment = 100*economic_disadvantaged_enrollment/total_enrollment) |> 
+  ggplot(aes(x = gross_rent_median_dollars, 
+             y = pct_econ_disadv_enrollment)) + 
+  geom_point() + 
+  geom_smooth(method = 'lm', se = FALSE) +
+  geom_text_repel(aes(label = year))
+
+acs_nces_data |> 
+  mutate(pct_econ_disadv_enrollment = 100*economic_disadvantaged_enrollment/total_enrollment) |> 
+  #mutate(year = as.character(year)) |>
+  ggplot(aes(x = year, 
+             y = gross_rent_median_dollars, 
+             size = pct_econ_disadv_enrollment)) + 
+  geom_point() 
+```
+
+```{r}
+acs_nces_data |> 
+  mutate(pct_econ_disadv_enrollment = 100*economic_disadvantaged_enrollment/total_enrollment) |> 
+  ggplot(aes(x = value_median_dollars, 
+             y = pct_econ_disadv_enrollment)) + 
+  geom_point() + 
+  geom_smooth(method = 'lm', se = FALSE) +
+  geom_text_repel(aes(label = year))
+
+acs_nces_data |> 
+  mutate(pct_econ_disadv_enrollment = 100*economic_disadvantaged_enrollment/total_enrollment) |> 
+  ggplot(aes(x = value_median_dollars, 
+             y = pct_econ_disadv_enrollment)) + 
+  geom_point(aes(size = total_enrollment)) + 
+  geom_smooth(method = 'lm', se = FALSE) +
+  geom_text_repel(aes(label = year))
+
+acs_nces_data |> 
+  mutate(pct_econ_disadv_enrollment = 100*economic_disadvantaged_enrollment/total_enrollment) |> 
+  mutate(year = as.character(year)) |>
+  ggplot(aes(x = year, 
+             y = value_median_dollars, 
+             size = pct_econ_disadv_enrollment)) + 
+  geom_point() 
+```
+
+```{r}
+
 ```
 
 # FOR CONSIDERATION...Opportunity Insights
