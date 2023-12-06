@@ -67,3 +67,72 @@ nces_16_19_readiness <- bind_rows(nces2016_readiness,
 
 nces_16_19_readiness
 ```
+
+```{r}
+#Getting Growth Data
+nces2017_growth <- read_csv('NCES Data/Growth/(2016-2017) Student Growth.csv') |> clean_names()
+nces2018_growth <- read_csv('NCES Data/Growth/(2017-2018) Student Growth (2017-18).csv') |> clean_names()
+nces2019_growth <- read_csv('NCES Data/Growth/(2018-2019) Student Growth.csv') |> clean_names()
+
+#Trying to Align with Growth Data
+nces_allYears |> 
+  pivot_longer(cols = ends_with('tested'), 
+               names_to = 'grade_sub_tested',
+               values_to = 'num_tested') |> 
+  pivot_longer(cols = ends_with('proficient'), 
+               names_to = 'grade_proficient', 
+               values_to = 'num_proficient') |> 
+  mutate(grade_sub_tested = str_replace(grade_sub_tested, "_tested$", ""),
+         grade_proficient = str_replace(grade_proficient, "_proficient$", "")) |> 
+  filter(grade_sub_tested == grade_proficient) |> 
+  mutate(percent_proficient = 100*as.numeric(num_proficient)/as.numeric(num_tested)) |> 
+  select(year, 
+         contains('enrollment'), 
+         graduation_rate_4_year, 
+         dropout_rate_4_year, 
+         grade_sub_tested, 
+         num_tested, 
+         num_proficient, 
+         percent_proficient, 
+         -grade_proficient) |> 
+  filter(!str_detect(grade_sub_tested, "social_studies"),
+         !str_detect(grade_sub_tested, "science"),
+         !str_detect(grade_sub_tested, "grade_3"))
+```
+
+```{r}
+#Old code for cleaning readiness tibbles
+# nces2016_readiness <- nces2016_readiness |> 
+#   filter(district_code == '82015' & building_name == 'All Buildings' & subgroup == 'All Students') |> 
+#   mutate(year = 2016) |> 
+#   select(year, 
+#          math_percent_ready, 
+#          ebrw_percent_ready, 
+#          all_subject_percent_ready)
+# 
+# nces2017_readiness <- nces2017_readiness |> 
+#   filter(district_code == '82015' & building_name == 'All Buildings' & subgroup == 'All Students') |> 
+#   mutate(year = 2017) |> 
+#   select(year, 
+#          math_percent_ready, 
+#          ebrw_percent_ready, 
+#          all_subject_percent_ready)
+# 
+# nces2018_readiness <- nces2018_readiness |> 
+#   filter(district_code == '82015' & building_name == 'All Buildings' & subgroup == 'All Students') |> 
+#   mutate(year = 2018) |> 
+#   select(year, 
+#          math_percent_ready, 
+#          ebrw_percent_ready, 
+#          all_subject_percent_ready)
+# 
+# nces2019_readiness <- nces2019_readiness |> 
+#   filter(district_code == '82015' & building_name == 'All Buildings' & subgroup == 'All Students') |> 
+#   mutate(year = 2019) |> 
+#   select(year, 
+#          math_percent_ready, 
+#          ebrw_percent_ready, 
+#          all_subject_percent_ready)
+
+
+```

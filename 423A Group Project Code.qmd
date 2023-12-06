@@ -76,7 +76,8 @@ acs_detroit_2020 <- read_csv('ACS Detroit Education Data/ACSDtrt2020-Data.csv')
 ```
 
 ```{r nces-data, echo=FALSE, include=FALSE}
-#Combined Years (from NCES download)
+#Files named 'Combined' (from NCES download)
+nces2010 <- read_csv('NCES Data/Combined/(2009-2010) Combined.csv') |> clean_names()
 nces2011 <- read_csv('NCES Data/Combined/(2010-2011) Combined.csv') |> clean_names()
 nces2012 <- read_csv('NCES Data/Combined/(2011-2012) Combined.csv') |> clean_names()
 nces2013 <- read_csv('NCES Data/Combined/(2012-2013) Combined.csv') |> clean_names()
@@ -86,17 +87,10 @@ nces2016 <- read_csv('NCES Data/Combined/(2015-2016) Combined.csv') |> clean_nam
 nces2017 <- read_csv('NCES Data/Combined/(2016-2017) Combined.csv') |> clean_names()
 nces2018 <- read_csv('NCES Data/Combined/(2017-2018) Combined.csv') |> clean_names()
 
-
-#Readiness
+#Readiness Files
 nces2016_readiness <- read_csv('NCES Data/Readiness/(2015-2016) College Readiness.csv') |> clean_names()
 nces2017_readiness <- read_csv('NCES Data/Readiness/(2016-2017) College Readiness.csv') |> clean_names()
 nces2018_readiness <- read_csv('NCES Data/Readiness/(2017-2018) College Readiness.csv') |> clean_names()
-nces2019_readiness <- read_csv('NCES Data/Readiness/(2018-2019) College Readiness.csv') |> clean_names()
-
-#Growth
-nces2017_growth <- read_csv('NCES Data/Growth/(2016-2017) Student Growth.csv') |> clean_names()
-nces2018_growth <- read_csv('NCES Data/Growth/(2017-2018) Student Growth (2017-18).csv') |> clean_names()
-nces2019_growth <- read_csv('NCES Data/Growth/(2018-2019) Student Growth.csv') |> clean_names()
 
 ```
 
@@ -663,13 +657,11 @@ acs_all_data <- acs_all_data |>
   select(year, everything())
 ```
 
-# 
-
 # Education Outcomes Data
 
 ## NCES Data Cleaning and Analysis
 
-```{r combined-data-set}
+```{r join-combined-data}
 #Converstion of all variables to a character value for joining
 all_objects <- ls()
 
@@ -698,58 +690,96 @@ for (obj_name in nces_objects) {
   }
 }
 
-nces_allYears <- bind_rows(nces2011, 
-                           nces2012, 
-                           nces2013, 
-                           nces2014, 
-                           nces2015, 
-                           nces2016, 
-                           nces2017, 
-                           nces2018) |> 
-  select(year, everything())
+nces_all_combined <- bind_rows(nces2010,
+                               nces2011, 
+                               nces2012, 
+                               nces2013, 
+                               nces2014, 
+                               nces2015, 
+                               nces2016, 
+                               nces2017, 
+                               nces2018) 
 
-nces_allYears |> 
+nces_all_combined <- nces_all_combined |> 
   select(year, 
          contains('enrollment'), 
          contains('percent'), 
-         contains('rate'))
+         contains('rate'), 
+         -grade_11_reading_percent_ready, 
+         -grade_11_science_percent_ready)
 
-#Trying to Align with Growth Data
-nces_allYears |> 
-  pivot_longer(cols = ends_with('tested'), 
-               names_to = 'grade_sub_tested',
-               values_to = 'num_tested') |> 
-  pivot_longer(cols = ends_with('proficient'), 
-               names_to = 'grade_proficient', 
-               values_to = 'num_proficient') |> 
-  mutate(grade_sub_tested = str_replace(grade_sub_tested, "_tested$", ""),
-         grade_proficient = str_replace(grade_proficient, "_proficient$", "")) |> 
-  filter(grade_sub_tested == grade_proficient) |> 
-  mutate(percent_proficient = 100*as.numeric(num_proficient)/as.numeric(num_tested)) |> 
-  select(year, 
-         contains('enrollment'), 
-         graduation_rate_4_year, 
-         dropout_rate_4_year, 
-         grade_sub_tested, 
-         num_tested, 
-         num_proficient, 
-         percent_proficient, 
-         -grade_proficient) |> 
-  filter(!str_detect(grade_sub_tested, "social_studies"),
-         !str_detect(grade_sub_tested, "science"),
-         !str_detect(grade_sub_tested, "grade_3"))
-
-#Trying to Align with College Readiness Data (!!!!english & reading vs ebrw issue)
-nces_allYears |> 
-  select(year, 
-         contains('enrollment'), 
-         graduation_rate_4_year, 
-         dropout_rate_4_year, 
-         contains('ready'))
-
+nces_all_combined
 ```
 
-# Opportunity Insights
+```{r join-readiness-data}
+#Define the list of dataframes and years
+nces_ready_dfs <- list(nces2016_readiness, nces2017_readiness, nces2018_readiness)
+years <- c(2016, 2017, 2018)
+
+#Initialize an empty list to store the results
+results <- list()
+
+#Loop over each dataframe
+for(i in seq_along(nces_ready_dfs)) {
+  # Perform the operations
+  results[[i]] <- nces_ready_dfs[[i]] |> 
+    filter(district_code == '82015' & building_name == 'All Buildings' & subgroup == 'All Students') |> 
+    mutate(year = years[i]) |> 
+    select(year, 
+           math_percent_ready, 
+           ebrw_percent_ready, 
+           all_subject_percent_ready)
+}
+
+#Assign the results back to the original variables
+nces2016_readiness <- results[[1]]
+nces2017_readiness <- results[[2]]
+nces2018_readiness <- results[[3]]
+
+#Bind Years into One Tibble
+nces_16_18_readiness <- bind_rows(nces2016_readiness, 
+                                  nces2017_readiness, 
+                                  nces2018_readiness)
+
+nces_16_18_readiness
+```
+
+```{r join-all-nces-data}
+
+nces_16_18_readiness <- nces_16_18_readiness |> 
+  mutate(year = as.character(year))
+
+nces_all_data <- full_join(nces_all_combined, nces_16_18_readiness, 
+          by = 'year') |> 
+  unite("grade_11_math_percent_ready", 
+        contains('math_percent_ready'), 
+        na.rm = TRUE) |>
+  unite("grade_11_english_percent_ready", 
+        grade_11_english_percent_ready, ebrw_percent_ready,
+        na.rm = TRUE) |>
+  unite("grade_11_all_subject_percent_ready", 
+        contains('all_subject_percent_ready'), 
+        na.rm = TRUE) |> 
+  mutate(grade_11_math_percent_ready = str_replace_all(grade_11_math_percent_ready, "0_", ""), 
+         grade_11_english_percent_ready = str_replace_all(grade_11_english_percent_ready, "0_", ""), 
+         grade_11_all_subject_percent_ready = str_replace_all(grade_11_all_subject_percent_ready, "0_", ""))
+
+nces_all_data <- nces_all_data |> 
+  mutate(across(everything(), as.numeric))
+
+nces_all_data
+```
+
+```{r join-all-data}
+
+acs_nces_data <- full_join(acs_all_data, nces_all_data, 
+                           by = 'year') |> 
+  filter(year < 2019)
+
+acs_nces_data
+```
+
+# FOR CONSIDERATION...Opportunity Insights
 
 ```{r read-in-data, include=FALSE}
 
