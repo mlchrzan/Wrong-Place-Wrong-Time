@@ -197,7 +197,8 @@ det_data <- det_data |>
   unite("gross_rent_1_500_or_more", contains('1_500_or_more'), na.rm = TRUE) 
 
 det_data <- det_data |> 
-  select(year, structures_built, contains('median'), starts_with('value'), gross_rent_less_than_500, gross_rent_500_to_999, gross_rent_1_000_to_1_499, gross_rent_1_500_or_more, starts_with('gross'), everything())
+  select(year, structures_built, contains('median'), starts_with('value'), gross_rent_less_than_500, gross_rent_500_to_999, gross_rent_1_000_to_1_499, gross_rent_1_500_or_more, starts_with('gross'), everything()) |> 
+  mutate(across(everything(), as.numeric))
 ```
 
 ```{r viz-housing-rent}
@@ -777,6 +778,17 @@ acs_nces_data <- full_join(acs_all_data, nces_all_data,
   filter(year < 2019)
 
 acs_nces_data
+```
+
+# Visualizations
+
+```{r}
+acs_nces_data |> 
+  mutate(year = as.character(year)) |> 
+  ggplot() + 
+  geom_point(aes(x = year, 
+                 y = gross_rent_1_500_or_more, 
+                 size = total_enrollment))
 ```
 
 # FOR CONSIDERATION...Opportunity Insights
