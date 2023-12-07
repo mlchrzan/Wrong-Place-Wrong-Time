@@ -97,7 +97,7 @@ nces2018_readiness <- read_csv('NCES Data/Readiness/(2017-2018) College Readines
 
 # Gentrification Data
 
-## ACS Housing Data
+## ACS Housing Data Cleaning 
 
 ```{r clean-housing}
 # List of years
@@ -202,93 +202,7 @@ det_data <- det_data |>
   mutate(across(everything(), as.numeric))
 ```
 
-```{r viz-housing-rent}
-det_data |> 
-  ggplot() + 
-  geom_line(aes(x = year, 
-                y = value_median_dollars)) + 
-  geom_point(data = filter(det_data, year < 2014), 
-             aes(x = year, 
-                 y = value_median_dollars)) +
-  geom_point(aes(x = year, 
-                 y = value_median_dollars,
-                 color = 'red',
-                 size = structures_built)) +
-  
-  labs(title = "Is Detroit Gentrifying?", 
-       subtitle = 'Median Detroit Property Value, 2010-2020', 
-       x = 'Year',
-       y = 'Median Property Value') + 
-  scale_size(name = "Number of Structures Built") +
-  theme_minimal() + 
-  guides(color = 'none') +
-  theme(legend.position = 'bottom')  
-  
-  
-
-det_data |> 
-  ggplot() + 
-  geom_line(aes(x = year, 
-                y = gross_rent_median_dollars)) + 
-  geom_point(data = filter(det_data, year < 2014),
-             aes(x = year, 
-                 y = gross_rent_median_dollars)) +
-  geom_point(aes(x = year, 
-                 y = gross_rent_median_dollars,
-                 color = 'red',
-                 size = structures_built)) +
-  
-  labs(title = "Is Detroit Gentrifying?", 
-       subtitle = 'Median Detroit Rent Costs, 2010-2020', 
-       x = 'Year',
-       y = 'Median Rent Cost') + 
-  scale_size(name = "Number of Structures Built") +
-  guides(color = 'none') +
-  theme_minimal() +
-  theme(legend.position = 'bottom')
-```
-
-```{r viz-housing-value}
-det_data |> 
-  pivot_longer(cols = c(value_less_than_50_000, value_50_000_to_99_999, value_100_000_to_149_999, value_150_000_to_199_999, value_200_000_to_299_999, value_300_000_to_499_999, value_500_000_to_999_999, value_1_000_000_or_more),
-               names_to = 'value_category', 
-               values_to = 'number_of_properties') |> 
-  select(year, value_median_dollars, value_category, number_of_properties) |> 
-  mutate(year = as.character(year), 
-         value_category = case_when(
-           value_category == 'value_less_than_50_000' ~ 'Less than $50k',
-           value_category == 'value_50_000_to_99_999' ~ '$50k - $99k', 
-           value_category == 'value_100_000_to_149_999' ~ '$100k - $149k', 
-           value_category == 'value_150_000_to_199_999' ~ '$150k - $199k', 
-           value_category == 'value_200_000_to_299_999' ~ '$200k - $299k',
-           value_category == 'value_300_000_to_499_999' ~ '$300k - $499k', 
-           value_category == 'value_500_000_to_999_999' ~ '$500k - $999k', 
-           value_category == 'value_1_000_000_or_more' ~ '$1000000+')) |> 
-  
-  ggplot() + 
-  geom_col(aes(x = factor(value_category, 
-                          levels = c('Less than $50k',
-                                     '$50k - $99k', 
-                                     '$100k - $149k', 
-                                     '$150k - $199k', 
-                                     '$200k - $299k',
-                                     '$300k - $499k', 
-                                     '$500k - $999k', 
-                                     '$1000000+'), 
-                          ordered = TRUE),
-               y = number_of_properties, 
-               fill = year), 
-           position = 'dodge') + 
-  labs(title = "Detroit's Housing Values are Increasing",
-       subtitle = "Detroit Housing Values, 2010-2020", 
-       x = 'Housing Value', 
-       y = 'Number of Properties') + 
-  coord_flip() +
-  scale_fill_viridis(discrete = TRUE) +
-  theme_minimal()
-```
-
-## ACS Education Data Cleaning and Analysis
+## ACS Education Data Cleaning 
 
 ```{r clean-columns}
 colnames(acs_detroit_2010) <- acs_detroit_2010[1, ]
@@ -590,65 +504,6 @@ educ_detroit <- bind_rows(educ_detroit_2010,
                           educ_detroit_2020)
 ```
 
-```{r viz-acs-ed-1}
-ggplot(educ_detroit, aes(x = factor(year), group = 1)) +
-  geom_line(aes(y = percent_educational_attainment_9th_to_12th_grade_no_diploma, 
-                color = "No High School Diploma"), linewidth = 1) +
-  geom_line(aes(y = percent_educational_attainment_high_school_graduate_includes_equivalency,
-                color = "GED"), linewidth = 1) +
-  geom_line(aes(y = percent_educational_attainment_some_college_no_degree, 
-                color = "Some college"), linewidth = 1) +
-  geom_line(aes(y = percent_educational_attainment_associates_degree, 
-                color = "Associate's Degree"), linewidth = 1) +
-  geom_line(aes(y = percent_educational_attainment_bachelors_degree, 
-                color = "Bachelor's Degree"), linewidth = 1) +
-  geom_line(aes(y = percent_educational_attainment_graduate_or_professional_degree, 
-                color = "PhD"), linewidth = 1) +
-  labs(title = "Population and Education Trends in Detroit, MI",
-       x = "\nYear",
-       y = "% of Population\n",
-       color = "") +
-  scale_color_manual(values = c("No High School Diploma" = "blue",
-                                "GED" = "purple",
-                                "Some college" = "pink",
-                                "Associate's Degree" = "gray",
-                                "Bachelor's Degree" = "green", 
-                                "PhD" = "red"),
-                     breaks = c("No High School Diploma",
-                                "GED",
-                                "Some college",
-                                "Associate's Degree",
-                                "Bachelor's Degree",
-                                "PhD")) +
-  geom_vline(xintercept = c("2019"), linetype = "dashed", color = "gray", linewidth = 1) +
-  theme_minimal() +
-  scale_x_discrete(labels = educ_detroit$year) +
-  theme(axis.text.x = element_text(hjust = 0.8, angle = 45, vjust=0.5)) 
-```
-
-```{r viz-acs-ed-2}
-educ_detroit |>
-  select(year, 
-         percent_bachelors_or_higher = percent_educational_attainment_percent_bachelors_degree_or_higher,
-         percent_high_school_or_higher = percent_educational_attainment_percent_high_school_graduate_or_higher) |>
-  pivot_longer(cols = -year, 
-               names_to = "educational_attainment",
-               values_to = "percentage") |>
-  mutate(educational_attainment = gsub("percent_", "", educational_attainment),
-         educational_attainment = factor(educational_attainment, 
-                                         levels = c("high_school_or_higher", "bachelors_or_higher"))) |>
-  ggplot(aes(x = year, y = percentage, fill = educational_attainment)) +
-    geom_area(position = "identity", alpha = 0.7) +
-    scale_fill_manual(values = c("high_school_or_higher" = "purple", "bachelors_or_higher" = "green"),
-                      name = "Educational Attainment",
-                      labels = c("high_school_or_higher" = "GED or higher", "bachelors_or_higher" = "Bachelor's or higher")) +
-    labs(title = "Educational Attainment in Detroit",
-         x = "\nYear",
-         y = "% of Population\n",
-         fill = "Educational Attainment") +
-    theme_minimal()
-```
-
 ## Combining All ACS Data
 
 ```{r join-acs}
@@ -661,7 +516,7 @@ acs_all_data <- acs_all_data |>
 
 # Education Outcomes Data
 
-## NCES Data Cleaning and Analysis
+## NCES Data Cleaning
 
 ```{r join-combined-data}
 #Converstion of all variables to a character value for joining
@@ -746,6 +601,8 @@ nces_16_18_readiness <- bind_rows(nces2016_readiness,
 nces_16_18_readiness
 ```
 
+# Combining all NCES Data
+
 ```{r join-all-nces-data}
 
 nces_16_18_readiness <- nces_16_18_readiness |> 
@@ -772,16 +629,292 @@ nces_all_data <- nces_all_data |>
 nces_all_data
 ```
 
+# Combining All Data
+
 ```{r join-all-data}
 
 acs_nces_data <- full_join(acs_all_data, nces_all_data, 
                            by = 'year') |> 
-  filter(year < 2019)
+  filter(year < 2019) |> 
+  select(-geographic_area_name, -geography)
 
 acs_nces_data
 ```
 
+```{r verify-gentrification}
+#VARIABLES TO CONSIDER
+#college educated increase = percent_educational_attainment_percent_bachelors_degree_or_higher (what others might we consider?)
+#housing price increase = gross_rent_median_dollars (OR value_median_dollars? Should it be both?), could consider gross_rent_1500_or_more
+#construction increase = structures_built (NEED BETTER DATA BEFORE ADDING TO QUALIFIERS)
+
+acs_nces_data |> 
+  mutate(rent_delta = gross_rent_median_dollars - lag(gross_rent_median_dollars), 
+         value_delta = value_median_dollars - lag(value_median_dollars), 
+         edu_level_delta = percent_educational_attainment_percent_bachelors_degree_or_higher - lag(percent_educational_attainment_percent_bachelors_degree_or_higher)) |> 
+
+  mutate(gentrifying = if_else((rent_delta > 0 | value_delta > 0) & edu_level_delta > 0.5, TRUE, FALSE)) |> 
+  select(year, rent_delta, value_delta, edu_level_delta, gentrifying, everything())
+
+
+acs_nces_data |> 
+  mutate(rent_delta = gross_rent_median_dollars - lag(gross_rent_median_dollars), 
+         value_delta = value_median_dollars - lag(value_median_dollars), 
+         edu_level_delta = percent_educational_attainment_percent_high_school_graduate_or_higher - lag(percent_educational_attainment_percent_high_school_graduate_or_higher)) |> 
+
+  mutate(gentrifying = if_else((rent_delta > 0 | value_delta > 0) & edu_level_delta > 0, TRUE, FALSE)) |> 
+  select(year, rent_delta, value_delta, edu_level_delta, gentrifying, everything())
+
+#--------------------------------------------------------------------------------------------------------
+#THIS SETUP FOR GENTRIFYING GIVES LATER YEARS AS GENTRIFYING. TESTING SOME VIZ
+acs_nces_data |> 
+  mutate(rent_delta = gross_rent_median_dollars - lag(gross_rent_median_dollars), 
+         value_delta = value_median_dollars - lag(value_median_dollars), 
+         edu_level_delta = percent_educational_attainment_graduate_or_professional_degree - lag(percent_educational_attainment_graduate_or_professional_degree)) |> 
+
+  mutate(gentrifying = if_else((rent_delta > 0 | value_delta > 0) & edu_level_delta > 0.2, TRUE, FALSE)) |> 
+  select(year, rent_delta, value_delta, edu_level_delta, gentrifying, everything()) |> 
+  filter(year != 2010) |> 
+  ggplot(aes(x = gentrifying, 
+             y = graduation_rate_4_year)) + 
+  geom_boxplot()
+
+acs_nces_data |> 
+  mutate(rent_delta = gross_rent_median_dollars - lag(gross_rent_median_dollars), 
+         value_delta = value_median_dollars - lag(value_median_dollars), 
+         edu_level_delta = percent_educational_attainment_graduate_or_professional_degree - lag(percent_educational_attainment_graduate_or_professional_degree)) |> 
+
+  mutate(gentrifying = if_else((rent_delta > 0 | value_delta > 0) & edu_level_delta > 0.2, TRUE, FALSE)) |> 
+  select(year, rent_delta, value_delta, edu_level_delta, gentrifying, everything()) |> 
+  filter(year != 2010) |> 
+  ggplot(aes(x = gentrifying, 
+             y = dropout_rate_4_year)) + 
+  geom_boxplot()
+
+acs_nces_data |> 
+  mutate(rent_delta = gross_rent_median_dollars - lag(gross_rent_median_dollars), 
+         value_delta = value_median_dollars - lag(value_median_dollars), 
+         edu_level_delta = percent_educational_attainment_graduate_or_professional_degree - lag(percent_educational_attainment_graduate_or_professional_degree)) |> 
+
+  mutate(gentrifying = if_else((rent_delta > 0 | value_delta > 0) & edu_level_delta > 0.2, TRUE, FALSE)) |> 
+  select(year, rent_delta, value_delta, edu_level_delta, gentrifying, everything()) |> 
+  filter(year != 2010) |> 
+  ggplot(aes(x = gentrifying, 
+             y = total_enrollment)) + 
+  geom_boxplot()
+
+acs_nces_data |> 
+  mutate(rent_delta = gross_rent_median_dollars - lag(gross_rent_median_dollars), 
+         value_delta = value_median_dollars - lag(value_median_dollars), 
+         edu_level_delta = percent_educational_attainment_graduate_or_professional_degree - lag(percent_educational_attainment_graduate_or_professional_degree)) |> 
+
+  mutate(gentrifying = if_else((rent_delta > 0 | value_delta > 0) & edu_level_delta > 0.2, TRUE, FALSE)) |> 
+  select(year, rent_delta, value_delta, edu_level_delta, gentrifying, everything()) |> 
+  filter(year != 2010) |> 
+  ggplot(aes(x = gentrifying, 
+             y = economic_disadvantaged_enrollment)) + 
+  geom_boxplot()
+
+acs_nces_data |> 
+  mutate(rent_delta = gross_rent_median_dollars - lag(gross_rent_median_dollars), 
+         value_delta = value_median_dollars - lag(value_median_dollars), 
+         edu_level_delta = percent_educational_attainment_graduate_or_professional_degree - lag(percent_educational_attainment_graduate_or_professional_degree)) |> 
+
+  mutate(gentrifying = if_else((rent_delta > 0 | value_delta > 0) & edu_level_delta > 0.2, TRUE, FALSE)) |> 
+  select(year, rent_delta, value_delta, edu_level_delta, gentrifying, everything()) |> 
+  filter(year != 2010) |> 
+  ggplot(aes(x = gentrifying, 
+             y = grade_11_math_percent_ready)) + 
+  geom_boxplot()
+
+acs_nces_data |> 
+  mutate(rent_delta = gross_rent_median_dollars - lag(gross_rent_median_dollars), 
+         value_delta = value_median_dollars - lag(value_median_dollars), 
+         edu_level_delta = percent_educational_attainment_graduate_or_professional_degree - lag(percent_educational_attainment_graduate_or_professional_degree)) |> 
+
+  mutate(gentrifying = if_else((rent_delta > 0 | value_delta > 0) & edu_level_delta > 0.2, TRUE, FALSE)) |> 
+  select(year, rent_delta, value_delta, edu_level_delta, gentrifying, everything()) |> 
+  filter(year != 2010) |> 
+  ggplot(aes(x = gentrifying, 
+             y = grade_11_english_percent_ready)) + 
+  geom_boxplot()
+
+acs_nces_data |> 
+  mutate(rent_delta = gross_rent_median_dollars - lag(gross_rent_median_dollars), 
+         value_delta = value_median_dollars - lag(value_median_dollars), 
+         edu_level_delta = percent_educational_attainment_graduate_or_professional_degree - lag(percent_educational_attainment_graduate_or_professional_degree)) |> 
+
+  mutate(gentrifying = if_else((rent_delta > 0 | value_delta > 0) & edu_level_delta > 0.2, TRUE, FALSE)) |> 
+  select(year, rent_delta, value_delta, edu_level_delta, gentrifying, everything()) |> 
+  filter(year != 2010) |> 
+  ggplot(aes(x = gentrifying, 
+             y = grade_11_all_subject_percent_ready)) + 
+  geom_boxplot()
+
+acs_nces_data |> 
+  mutate(rent_delta = gross_rent_median_dollars - lag(gross_rent_median_dollars), 
+         value_delta = value_median_dollars - lag(value_median_dollars), 
+         edu_level_delta = percent_educational_attainment_graduate_or_professional_degree - lag(percent_educational_attainment_graduate_or_professional_degree)) |> 
+
+  mutate(gentrifying = if_else((rent_delta > 0 | value_delta > 0) & edu_level_delta > 0.2, TRUE, FALSE)) |> 
+  select(year, rent_delta, value_delta, edu_level_delta, gentrifying, everything()) |> 
+  filter(year != 2010) |> 
+  pivot_longer(cols = contains('enrollment') & !starts_with('grade') & !starts_with('kinder'), 
+               names_to = 'enrollment_group', 
+               values_to = 'enrollment_number') |> 
+  select(enrollment_group, enrollment_number, everything()) |> 
+  group_by(enrollment_group) |> 
+  ggplot(aes(x = gentrifying, 
+             y = enrollment_number)) + 
+  geom_boxplot() + 
+  facet_wrap(~enrollment_group) 
+```
+
 # Visualizations
+
+```{r viz-housing-rent}
+det_data |> 
+  ggplot() + 
+  geom_line(aes(x = year, 
+                y = value_median_dollars)) + 
+  geom_point(data = filter(det_data, year < 2014), 
+             aes(x = year, 
+                 y = value_median_dollars)) +
+  geom_point(aes(x = year, 
+                 y = value_median_dollars,
+                 color = 'red',
+                 size = structures_built)) +
+  
+  labs(title = "Is Detroit Gentrifying?", 
+       subtitle = 'Median Detroit Property Value, 2010-2020', 
+       x = 'Year',
+       y = 'Median Property Value') + 
+  scale_size(name = "Number of Structures Built") +
+  theme_minimal() + 
+  guides(color = 'none') +
+  theme(legend.position = 'bottom')  
+  
+  
+
+det_data |> 
+  ggplot() + 
+  geom_line(aes(x = year, 
+                y = gross_rent_median_dollars)) + 
+  geom_point(data = filter(det_data, year < 2014),
+             aes(x = year, 
+                 y = gross_rent_median_dollars)) +
+  geom_point(aes(x = year, 
+                 y = gross_rent_median_dollars,
+                 color = 'red',
+                 size = structures_built)) +
+  
+  labs(title = "Is Detroit Gentrifying?", 
+       subtitle = 'Median Detroit Rent Costs, 2010-2020', 
+       x = 'Year',
+       y = 'Median Rent Cost') + 
+  scale_size(name = "Number of Structures Built") +
+  guides(color = 'none') +
+  theme_minimal() +
+  theme(legend.position = 'bottom')
+```
+
+```{r viz-housing-value}
+det_data |> 
+  pivot_longer(cols = c(value_less_than_50_000, value_50_000_to_99_999, value_100_000_to_149_999, value_150_000_to_199_999, value_200_000_to_299_999, value_300_000_to_499_999, value_500_000_to_999_999, value_1_000_000_or_more),
+               names_to = 'value_category', 
+               values_to = 'number_of_properties') |> 
+  select(year, value_median_dollars, value_category, number_of_properties) |> 
+  mutate(year = as.character(year), 
+         value_category = case_when(
+           value_category == 'value_less_than_50_000' ~ 'Less than $50k',
+           value_category == 'value_50_000_to_99_999' ~ '$50k - $99k', 
+           value_category == 'value_100_000_to_149_999' ~ '$100k - $149k', 
+           value_category == 'value_150_000_to_199_999' ~ '$150k - $199k', 
+           value_category == 'value_200_000_to_299_999' ~ '$200k - $299k',
+           value_category == 'value_300_000_to_499_999' ~ '$300k - $499k', 
+           value_category == 'value_500_000_to_999_999' ~ '$500k - $999k', 
+           value_category == 'value_1_000_000_or_more' ~ '$1000000+')) |> 
+  
+  ggplot() + 
+  geom_col(aes(x = factor(value_category, 
+                          levels = c('Less than $50k',
+                                     '$50k - $99k', 
+                                     '$100k - $149k', 
+                                     '$150k - $199k', 
+                                     '$200k - $299k',
+                                     '$300k - $499k', 
+                                     '$500k - $999k', 
+                                     '$1000000+'), 
+                          ordered = TRUE),
+               y = number_of_properties, 
+               fill = year), 
+           position = 'dodge') + 
+  labs(title = "Detroit's Housing Values are Increasing",
+       subtitle = "Detroit Housing Values, 2010-2020", 
+       x = 'Housing Value', 
+       y = 'Number of Properties') + 
+  coord_flip() +
+  scale_fill_viridis(discrete = TRUE) +
+  theme_minimal()
+```
+
+```{r viz-acs-ed-1}
+ggplot(educ_detroit, aes(x = factor(year), group = 1)) +
+  geom_line(aes(y = percent_educational_attainment_9th_to_12th_grade_no_diploma, 
+                color = "No High School Diploma"), linewidth = 1) +
+  geom_line(aes(y = percent_educational_attainment_high_school_graduate_includes_equivalency,
+                color = "GED"), linewidth = 1) +
+  geom_line(aes(y = percent_educational_attainment_some_college_no_degree, 
+                color = "Some college"), linewidth = 1) +
+  geom_line(aes(y = percent_educational_attainment_associates_degree, 
+                color = "Associate's Degree"), linewidth = 1) +
+  geom_line(aes(y = percent_educational_attainment_bachelors_degree, 
+                color = "Bachelor's Degree"), linewidth = 1) +
+  geom_line(aes(y = percent_educational_attainment_graduate_or_professional_degree, 
+                color = "PhD"), linewidth = 1) +
+  labs(title = "Population and Education Trends in Detroit, MI",
+       x = "\nYear",
+       y = "% of Population\n",
+       color = "") +
+  scale_color_manual(values = c("No High School Diploma" = "blue",
+                                "GED" = "purple",
+                                "Some college" = "pink",
+                                "Associate's Degree" = "gray",
+                                "Bachelor's Degree" = "green", 
+                                "PhD" = "red"),
+                     breaks = c("No High School Diploma",
+                                "GED",
+                                "Some college",
+                                "Associate's Degree",
+                                "Bachelor's Degree",
+                                "PhD")) +
+  geom_vline(xintercept = c("2019"), linetype = "dashed", color = "gray", linewidth = 1) +
+  theme_minimal() +
+  scale_x_discrete(labels = educ_detroit$year) +
+  theme(axis.text.x = element_text(hjust = 0.8, angle = 45, vjust=0.5)) 
+```
+
+```{r viz-acs-ed-2}
+educ_detroit |>
+  select(year, 
+         percent_bachelors_or_higher = percent_educational_attainment_percent_bachelors_degree_or_higher,
+         percent_high_school_or_higher = percent_educational_attainment_percent_high_school_graduate_or_higher) |>
+  pivot_longer(cols = -year, 
+               names_to = "educational_attainment",
+               values_to = "percentage") |>
+  mutate(educational_attainment = gsub("percent_", "", educational_attainment),
+         educational_attainment = factor(educational_attainment, 
+                                         levels = c("high_school_or_higher", "bachelors_or_higher"))) |>
+  ggplot(aes(x = year, y = percentage, fill = educational_attainment)) +
+    geom_area(position = "identity", alpha = 0.7) +
+    scale_fill_manual(values = c("high_school_or_higher" = "purple", "bachelors_or_higher" = "green"),
+                      name = "Educational Attainment",
+                      labels = c("high_school_or_higher" = "GED or higher", "bachelors_or_higher" = "Bachelor's or higher")) +
+    labs(title = "Educational Attainment in Detroit",
+         x = "\nYear",
+         y = "% of Population\n",
+         fill = "Educational Attainment") +
+    theme_minimal()
+```
 
 ```{r}
 acs_nces_data |> 
