@@ -36,13 +36,6 @@ library(viridis)
 library(skimr)
 library(cowplot)
 library(ggrepel)
-library(readxl)
-library(curl)
-library(xml2) 
-library(rvest)
-library(httr)
-library(RJSONIO) 
-library(jsonlite)
 library(here)
 ```
 
@@ -67,7 +60,7 @@ det2011 <- read_csv("Detroit Housing Data/Detroit housing Data 2011.csv") |> cle
 det2010 <- read_csv("Detroit Housing Data/Detroit housing Data 2010.csv") |> clean_names()
 
 #Detroit Parcel Data
-det_parcel <- read_csv("Detroit Housing Data/Parcels.csv") |> clean_names()
+det_parcel <- read_csv("Detroit Housing Data/Parcels_filtered.csv") |> clean_names()
 
 ```
 
@@ -647,8 +640,7 @@ nces_all_data
 unique(det_parcel$property_class_desc)
 
 housing_built <- det_parcel |> 
-  filter(year_built >= 2009 & year_built < 2019, 
-        str_detect(property_class_desc, 'RESIDENTIAL')) |> 
+  filter(year_built >= 2009 & year_built < 2019) |> 
   group_by(year_built) |> 
   summarise(housing_built = n()) |> 
   ungroup() |> 
@@ -671,10 +663,12 @@ acs_nces_data
 all_data <- filter(housing_built, year > 2009) |> 
   full_join(acs_nces_data, housing_built, 
                       by = 'year')
+
+all_data
 ```
 
-```{r verify-gentrification-NEW}
-all_data |> 
+```{r unrestricted_model}
+unrestrict_model <- all_data |> 
   mutate(rent_delta = gross_rent_median_dollars - lag(gross_rent_median_dollars), 
          value_delta = value_median_dollars - lag(value_median_dollars), 
          edu_level_delta = percent_educational_attainment_percent_bachelors_degree_or_higher - lag(percent_educational_attainment_percent_bachelors_degree_or_higher), 
@@ -683,8 +677,8 @@ all_data |>
   select(year, rent_delta, value_delta, edu_level_delta, housing_delta, gentrifying, everything())
 ```
 
-```{r}
-all_data |> 
+```{r restricted_model}
+restrict_model <- all_data |> 
   mutate(rent_delta = gross_rent_median_dollars - lag(gross_rent_median_dollars), 
          value_delta = value_median_dollars - lag(value_median_dollars), 
          edu_level_delta = percent_educational_attainment_graduate_or_professional_degree - lag(percent_educational_attainment_graduate_or_professional_degree), 
@@ -694,29 +688,68 @@ all_data |>
   select(year, rent_delta, value_delta, edu_level_delta, housing_delta, gentrifying, everything())
 ```
 
+```{r verify-gentrification-NEW}
+restrict_model |> 
+  filter(year != 2010) |> 
+  ggplot(aes(x = gentrifying, 
+             y = total_enrollment)) + 
+  geom_boxplot()
+
+#PIVOTS SECTIONS TO GROUP VARIABLES
+restrict_model |> 
+  filter(year != 2010) |> 
+  pivot_longer(cols = contains('enrollment') & !starts_with('grade') & !starts_with('kinder') & !starts_with('total'), 
+               names_to = 'enrollment_group', 
+               values_to = 'enrollment_number') |> 
+  mutate(pct_total_enrollment = 100*enrollment_number/total_enrollment) |> 
+  select(enrollment_group, enrollment_number, total_enrollment, pct_total_enrollment, everything()) |> 
+  ggplot(aes(x = enrollment_group, 
+             y = pct_total_enrollment)) + 
+  geom_boxplot(aes(fill = gentrifying)) +
+  coord_flip()
+
+restrict_model |> 
+  filter(year != 2010) |>  
+  pivot_longer(cols = contains('enrollment') & !starts_with('total') & (starts_with('grade') | starts_with('kinder')), 
+               names_to = 'enrollment_group', 
+               values_to = 'enrollment_number') |> 
+  mutate(pct_total_enrollment = 100*enrollment_number/total_enrollment) |> 
+  select(enrollment_group, enrollment_number, total_enrollment, pct_total_enrollment, everything()) |> 
+  ggplot(aes(x = enrollment_group, 
+             y = pct_total_enrollment)) + 
+  geom_boxplot(aes(fill = gentrifying)) +
+  coord_flip()
+
+restrict_model |> 
+  filter(year != 2010) |> 
+  pivot_longer(cols = contains("graduation"), 
+               names_to = 'grad_rate_timeframe', 
+               values_to = 'grad_rate') |> 
+  ggplot(aes(x = grad_rate_timeframe, 
+             y = grad_rate)) + 
+  geom_boxplot(aes(fill = gentrifying))
+
+restrict_model |> 
+  filter(year != 2010) |> 
+  pivot_longer(cols = contains("dropout"), 
+               names_to = 'dropout_rate_timeframe', 
+               values_to = 'dropout_rate') |> 
+  ggplot(aes(x = dropout_rate_timeframe, 
+             y = dropout_rate)) + 
+  geom_boxplot(aes(fill = gentrifying))
+
+restrict_model |> 
+  filter(year != 2010) |> 
+  pivot_longer(cols = contains('ready'), 
+               names_to = 'subject_readiness', 
+               values_to = 'pct_ready') |> 
+  ggplot(aes(x = subject_readiness, 
+             y = pct_ready)) + 
+  geom_boxplot(aes(fill = gentrifying)) +
+  coord_flip()
+```
+
 ```{r verify-gentrification-OLD}
-#VARIABLES TO CONSIDER
-#college educated increase = percent_educational_attainment_percent_bachelors_degree_or_higher (what others might we consider?)
-#housing price increase = gross_rent_median_dollars (OR value_median_dollars? Should it be both?), could consider gross_rent_1500_or_more
-#construction increase = structures_built (NEED BETTER DATA BEFORE ADDING TO QUALIFIERS)
-
-acs_nces_data |> 
-  mutate(rent_delta = gross_rent_median_dollars - lag(gross_rent_median_dollars), 
-         value_delta = value_median_dollars - lag(value_median_dollars), 
-         edu_level_delta = percent_educational_attainment_percent_bachelors_degree_or_higher - lag(percent_educational_attainment_percent_bachelors_degree_or_higher)) |> 
-
-  mutate(gentrifying = if_else((rent_delta > 0 | value_delta > 0) & edu_level_delta > 0.5, TRUE, FALSE)) |> 
-  select(year, rent_delta, value_delta, edu_level_delta, gentrifying, everything())
-
-
-acs_nces_data |> 
-  mutate(rent_delta = gross_rent_median_dollars - lag(gross_rent_median_dollars), 
-         value_delta = value_median_dollars - lag(value_median_dollars), 
-         edu_level_delta = percent_educational_attainment_percent_high_school_graduate_or_higher - lag(percent_educational_attainment_percent_high_school_graduate_or_higher)) |> 
-
-  mutate(gentrifying = if_else((rent_delta > 0 | value_delta > 0) & edu_level_delta > 0, TRUE, FALSE)) |> 
-  select(year, rent_delta, value_delta, edu_level_delta, gentrifying, everything())
-
 #--------------------------------------------------------------------------------------------------------
 #THIS SETUP FOR GENTRIFYING GIVES LATER YEARS AS GENTRIFYING. TESTING SOME VIZ
 acs_nces_data |> 
