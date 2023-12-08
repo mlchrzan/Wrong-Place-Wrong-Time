@@ -24,10 +24,6 @@ I acknowledge and agree to abide by the Honor Code.
 
 **Signed: Michael O'key, Michael Leon Chrzan, Laisha Ozuna**
 
-## Running Code
-
-Research Question \| What relationship, if any, exists between gentrification, as operationalized by the Pearman and Greene (2022) model, and educational outcomes in San Francisco and Detroit between 2010 and 2020?
-
 ```{r libraries, include=FALSE}
 library(tidyverse)
 library(tidytext)
@@ -40,12 +36,24 @@ library(viridis)
 library(skimr)
 library(cowplot)
 library(ggrepel)
+library(readxl)
+library(curl)
+library(xml2) 
+library(rvest)
+library(httr)
+library(RJSONIO) 
+library(jsonlite)
 library(here)
 ```
+
+# Research Question
+
+What relationship, if any, exists between gentrification, as operationalized by the Pearman and Greene (2022) model, and educational outcomes in San Francisco and Detroit between 2010 and 2020?
 
 # Import Data
 
 ```{r housing-data, echo=FALSE, include=FALSE}
+#ACS Estimate Data 
 det2020 <- read_csv("Detroit Housing Data/Detroit housing Data 2020.csv") |> clean_names()
 det2019 <- read_csv("Detroit Housing Data/Detroit housing Data 2019.csv") |> clean_names()
 det2018 <- read_csv("Detroit Housing Data/Detroit housing Data 2018.csv") |> clean_names()
@@ -57,6 +65,9 @@ det2013 <- read_csv("Detroit Housing Data/Detroit housing Data 2013.csv") |> cle
 det2012 <- read_csv("Detroit Housing Data/Detroit housing Data 2012.csv") |> clean_names()
 det2011 <- read_csv("Detroit Housing Data/Detroit housing Data 2011.csv") |> clean_names()
 det2010 <- read_csv("Detroit Housing Data/Detroit housing Data 2010.csv") |> clean_names()
+
+#Detroit Parcel Data
+det_parcel <- read_csv("Detroit Housing Data/Parcels.csv") |> clean_names()
 
 ```
 
@@ -97,7 +108,7 @@ nces2018_readiness <- read_csv('NCES Data/Readiness/(2017-2018) College Readines
 
 # Gentrification Data
 
-## ACS Housing Data Cleaning 
+## ACS Housing Data Cleaning
 
 ```{r clean-housing}
 # List of years
@@ -202,7 +213,7 @@ det_data <- det_data |>
   mutate(across(everything(), as.numeric))
 ```
 
-## ACS Education Data Cleaning 
+## ACS Education Data Cleaning
 
 ```{r clean-columns}
 colnames(acs_detroit_2010) <- acs_detroit_2010[1, ]
@@ -629,6 +640,23 @@ nces_all_data <- nces_all_data |>
 nces_all_data
 ```
 
+# Construction Data
+
+```{r parcel-data}
+
+unique(det_parcel$property_class_desc)
+
+housing_built <- det_parcel |> 
+  filter(year_built >= 2009 & year_built < 2019, 
+        str_detect(property_class_desc, 'RESIDENTIAL')) |> 
+  group_by(year_built) |> 
+  summarise(housing_built = n()) |> 
+  ungroup() |> 
+  rename(year = year_built) 
+
+housing_built
+```
+
 # Combining All Data
 
 ```{r join-all-data}
@@ -639,9 +667,34 @@ acs_nces_data <- full_join(acs_all_data, nces_all_data,
   select(-geographic_area_name, -geography)
 
 acs_nces_data
+
+all_data <- filter(housing_built, year > 2009) |> 
+  full_join(acs_nces_data, housing_built, 
+                      by = 'year')
 ```
 
-```{r verify-gentrification}
+```{r verify-gentrification-NEW}
+all_data |> 
+  mutate(rent_delta = gross_rent_median_dollars - lag(gross_rent_median_dollars), 
+         value_delta = value_median_dollars - lag(value_median_dollars), 
+         edu_level_delta = percent_educational_attainment_percent_bachelors_degree_or_higher - lag(percent_educational_attainment_percent_bachelors_degree_or_higher), 
+         housing_delta = housing_built - lag(housing_built)) |> 
+  mutate(gentrifying = if_else((rent_delta > 0 | value_delta > 0) & edu_level_delta > 0 & housing_delta > 0, TRUE, FALSE)) |> 
+  select(year, rent_delta, value_delta, edu_level_delta, housing_delta, gentrifying, everything())
+```
+
+```{r}
+all_data |> 
+  mutate(rent_delta = gross_rent_median_dollars - lag(gross_rent_median_dollars), 
+         value_delta = value_median_dollars - lag(value_median_dollars), 
+         edu_level_delta = percent_educational_attainment_graduate_or_professional_degree - lag(percent_educational_attainment_graduate_or_professional_degree), 
+         housing_delta = housing_built - lag(housing_built)) |> 
+
+  mutate(gentrifying = if_else((rent_delta > 0 | value_delta > 0) & edu_level_delta > 0.1 & housing_delta > 0, TRUE, FALSE)) |> 
+  select(year, rent_delta, value_delta, edu_level_delta, housing_delta, gentrifying, everything())
+```
+
+```{r verify-gentrification-OLD}
 #VARIABLES TO CONSIDER
 #college educated increase = percent_educational_attainment_percent_bachelors_degree_or_higher (what others might we consider?)
 #housing price increase = gross_rent_median_dollars (OR value_median_dollars? Should it be both?), could consider gross_rent_1500_or_more
@@ -675,33 +728,10 @@ acs_nces_data |>
   select(year, rent_delta, value_delta, edu_level_delta, gentrifying, everything()) |> 
   filter(year != 2010) |> 
   ggplot(aes(x = gentrifying, 
-             y = graduation_rate_4_year)) + 
-  geom_boxplot()
-
-acs_nces_data |> 
-  mutate(rent_delta = gross_rent_median_dollars - lag(gross_rent_median_dollars), 
-         value_delta = value_median_dollars - lag(value_median_dollars), 
-         edu_level_delta = percent_educational_attainment_graduate_or_professional_degree - lag(percent_educational_attainment_graduate_or_professional_degree)) |> 
-
-  mutate(gentrifying = if_else((rent_delta > 0 | value_delta > 0) & edu_level_delta > 0.2, TRUE, FALSE)) |> 
-  select(year, rent_delta, value_delta, edu_level_delta, gentrifying, everything()) |> 
-  filter(year != 2010) |> 
-  ggplot(aes(x = gentrifying, 
-             y = dropout_rate_4_year)) + 
-  geom_boxplot()
-
-acs_nces_data |> 
-  mutate(rent_delta = gross_rent_median_dollars - lag(gross_rent_median_dollars), 
-         value_delta = value_median_dollars - lag(value_median_dollars), 
-         edu_level_delta = percent_educational_attainment_graduate_or_professional_degree - lag(percent_educational_attainment_graduate_or_professional_degree)) |> 
-
-  mutate(gentrifying = if_else((rent_delta > 0 | value_delta > 0) & edu_level_delta > 0.2, TRUE, FALSE)) |> 
-  select(year, rent_delta, value_delta, edu_level_delta, gentrifying, everything()) |> 
-  filter(year != 2010) |> 
-  ggplot(aes(x = gentrifying, 
              y = total_enrollment)) + 
   geom_boxplot()
 
+#PIVOTS SECTIONS TO GROUP VARIABLES
 acs_nces_data |> 
   mutate(rent_delta = gross_rent_median_dollars - lag(gross_rent_median_dollars), 
          value_delta = value_median_dollars - lag(value_median_dollars), 
@@ -710,63 +740,122 @@ acs_nces_data |>
   mutate(gentrifying = if_else((rent_delta > 0 | value_delta > 0) & edu_level_delta > 0.2, TRUE, FALSE)) |> 
   select(year, rent_delta, value_delta, edu_level_delta, gentrifying, everything()) |> 
   filter(year != 2010) |> 
-  ggplot(aes(x = gentrifying, 
-             y = economic_disadvantaged_enrollment)) + 
-  geom_boxplot()
-
-acs_nces_data |> 
-  mutate(rent_delta = gross_rent_median_dollars - lag(gross_rent_median_dollars), 
-         value_delta = value_median_dollars - lag(value_median_dollars), 
-         edu_level_delta = percent_educational_attainment_graduate_or_professional_degree - lag(percent_educational_attainment_graduate_or_professional_degree)) |> 
-
-  mutate(gentrifying = if_else((rent_delta > 0 | value_delta > 0) & edu_level_delta > 0.2, TRUE, FALSE)) |> 
-  select(year, rent_delta, value_delta, edu_level_delta, gentrifying, everything()) |> 
-  filter(year != 2010) |> 
-  ggplot(aes(x = gentrifying, 
-             y = grade_11_math_percent_ready)) + 
-  geom_boxplot()
-
-acs_nces_data |> 
-  mutate(rent_delta = gross_rent_median_dollars - lag(gross_rent_median_dollars), 
-         value_delta = value_median_dollars - lag(value_median_dollars), 
-         edu_level_delta = percent_educational_attainment_graduate_or_professional_degree - lag(percent_educational_attainment_graduate_or_professional_degree)) |> 
-
-  mutate(gentrifying = if_else((rent_delta > 0 | value_delta > 0) & edu_level_delta > 0.2, TRUE, FALSE)) |> 
-  select(year, rent_delta, value_delta, edu_level_delta, gentrifying, everything()) |> 
-  filter(year != 2010) |> 
-  ggplot(aes(x = gentrifying, 
-             y = grade_11_english_percent_ready)) + 
-  geom_boxplot()
-
-acs_nces_data |> 
-  mutate(rent_delta = gross_rent_median_dollars - lag(gross_rent_median_dollars), 
-         value_delta = value_median_dollars - lag(value_median_dollars), 
-         edu_level_delta = percent_educational_attainment_graduate_or_professional_degree - lag(percent_educational_attainment_graduate_or_professional_degree)) |> 
-
-  mutate(gentrifying = if_else((rent_delta > 0 | value_delta > 0) & edu_level_delta > 0.2, TRUE, FALSE)) |> 
-  select(year, rent_delta, value_delta, edu_level_delta, gentrifying, everything()) |> 
-  filter(year != 2010) |> 
-  ggplot(aes(x = gentrifying, 
-             y = grade_11_all_subject_percent_ready)) + 
-  geom_boxplot()
-
-acs_nces_data |> 
-  mutate(rent_delta = gross_rent_median_dollars - lag(gross_rent_median_dollars), 
-         value_delta = value_median_dollars - lag(value_median_dollars), 
-         edu_level_delta = percent_educational_attainment_graduate_or_professional_degree - lag(percent_educational_attainment_graduate_or_professional_degree)) |> 
-
-  mutate(gentrifying = if_else((rent_delta > 0 | value_delta > 0) & edu_level_delta > 0.2, TRUE, FALSE)) |> 
-  select(year, rent_delta, value_delta, edu_level_delta, gentrifying, everything()) |> 
-  filter(year != 2010) |> 
-  pivot_longer(cols = contains('enrollment') & !starts_with('grade') & !starts_with('kinder'), 
+  pivot_longer(cols = contains('enrollment') & !starts_with('grade') & !starts_with('kinder') & !starts_with('total'), 
                names_to = 'enrollment_group', 
                values_to = 'enrollment_number') |> 
-  select(enrollment_group, enrollment_number, everything()) |> 
-  group_by(enrollment_group) |> 
-  ggplot(aes(x = gentrifying, 
-             y = enrollment_number)) + 
-  geom_boxplot() + 
-  facet_wrap(~enrollment_group) 
+  mutate(pct_total_enrollment = 100*enrollment_number/total_enrollment) |> 
+  select(enrollment_group, enrollment_number, total_enrollment, pct_total_enrollment, everything()) |> 
+  ggplot(aes(x = enrollment_group, 
+             y = pct_total_enrollment)) + 
+  geom_boxplot(aes(fill = gentrifying)) +
+  coord_flip()
+
+acs_nces_data |> 
+  mutate(rent_delta = gross_rent_median_dollars - lag(gross_rent_median_dollars), 
+         value_delta = value_median_dollars - lag(value_median_dollars), 
+         edu_level_delta = percent_educational_attainment_graduate_or_professional_degree - lag(percent_educational_attainment_graduate_or_professional_degree)) |> 
+
+  mutate(gentrifying = if_else((rent_delta > 0 | value_delta > 0) & edu_level_delta > 0.2, TRUE, FALSE)) |> 
+  select(year, rent_delta, value_delta, edu_level_delta, gentrifying, everything()) |> 
+  filter(year != 2010) |> 
+  pivot_longer(cols = contains('enrollment') & !starts_with('total') & (starts_with('grade') | starts_with('kinder')), 
+               names_to = 'enrollment_group', 
+               values_to = 'enrollment_number') |> 
+  mutate(pct_total_enrollment = 100*enrollment_number/total_enrollment) |> 
+  select(enrollment_group, enrollment_number, total_enrollment, pct_total_enrollment, everything()) |> 
+  ggplot(aes(x = enrollment_group, 
+             y = pct_total_enrollment)) + 
+  geom_boxplot(aes(fill = gentrifying)) +
+  coord_flip()
+
+acs_nces_data |> 
+  mutate(rent_delta = gross_rent_median_dollars - lag(gross_rent_median_dollars), 
+         value_delta = value_median_dollars - lag(value_median_dollars), 
+         edu_level_delta = percent_educational_attainment_graduate_or_professional_degree - lag(percent_educational_attainment_graduate_or_professional_degree)) |> 
+
+  mutate(gentrifying = if_else((rent_delta > 0 | value_delta > 0) & edu_level_delta > 0.2, TRUE, FALSE)) |> 
+  select(year, rent_delta, value_delta, edu_level_delta, gentrifying, everything()) |> 
+  filter(year != 2010) |> 
+  pivot_longer(cols = contains("graduation"), 
+               names_to = 'grad_rate_timeframe', 
+               values_to = 'grad_rate') |> 
+  ggplot(aes(x = grad_rate_timeframe, 
+             y = grad_rate)) + 
+  geom_boxplot(aes(fill = gentrifying))
+
+acs_nces_data |> 
+  mutate(rent_delta = gross_rent_median_dollars - lag(gross_rent_median_dollars), 
+         value_delta = value_median_dollars - lag(value_median_dollars), 
+         edu_level_delta = percent_educational_attainment_graduate_or_professional_degree - lag(percent_educational_attainment_graduate_or_professional_degree)) |> 
+
+  mutate(gentrifying = if_else((rent_delta > 0 | value_delta > 0) & edu_level_delta > 0.2, TRUE, FALSE)) |> 
+  select(year, rent_delta, value_delta, edu_level_delta, gentrifying, everything()) |> 
+  filter(year != 2010) |> 
+  pivot_longer(cols = contains("dropout"), 
+               names_to = 'dropout_rate_timeframe', 
+               values_to = 'dropout_rate') |> 
+  ggplot(aes(x = dropout_rate_timeframe, 
+             y = dropout_rate)) + 
+  geom_boxplot(aes(fill = gentrifying))
+
+acs_nces_data |> 
+  mutate(rent_delta = gross_rent_median_dollars - lag(gross_rent_median_dollars), 
+         value_delta = value_median_dollars - lag(value_median_dollars), 
+         edu_level_delta = percent_educational_attainment_graduate_or_professional_degree - lag(percent_educational_attainment_graduate_or_professional_degree)) |> 
+
+  mutate(gentrifying = if_else((rent_delta > 0 | value_delta > 0) & edu_level_delta > 0.2, TRUE, FALSE)) |> 
+  select(year, rent_delta, value_delta, edu_level_delta, gentrifying, everything()) |> 
+  filter(year != 2010) |> 
+  pivot_longer(cols = contains('ready'), 
+               names_to = 'subject_readiness', 
+               values_to = 'pct_ready') |> 
+  ggplot(aes(x = subject_readiness, 
+             y = pct_ready)) + 
+  geom_boxplot(aes(fill = gentrifying)) +
+  coord_flip()
+
+
+#WANT TO HAVE A LINE GRAPH OVER YEAR WITH DIFFERENT LINES FOR ENROLLMENT WITH BACKGROUND COLOR SHADING FOR WHEN A YEAR COUNTS AS BEING GENTRIFIED
+acs_nces_data |> 
+  mutate(rent_delta = gross_rent_median_dollars - lag(gross_rent_median_dollars), 
+         value_delta = value_median_dollars - lag(value_median_dollars), 
+         edu_level_delta = percent_educational_attainment_graduate_or_professional_degree - lag(percent_educational_attainment_graduate_or_professional_degree)) |> 
+
+  mutate(gentrifying = if_else((rent_delta > 0 | value_delta > 0) & edu_level_delta > 0.2, TRUE, FALSE)) |> 
+  select(year, rent_delta, value_delta, edu_level_delta, gentrifying, everything()) |> 
+  filter(year != 2010) |> 
+  pivot_longer(cols = contains('enrollment') & !starts_with('total') & (starts_with('grade') | starts_with('kinder')), 
+               names_to = 'enrollment_group', 
+               values_to = 'enrollment_number') |> 
+  mutate(pct_total_enrollment = 100*enrollment_number/total_enrollment) |> 
+  select(enrollment_group, enrollment_number, total_enrollment, pct_total_enrollment, everything()) |> 
+  ggplot(aes(x = year, 
+             y = pct_total_enrollment)) + 
+  geom_line(aes(color = gentrifying)) +
+  facet_wrap(~enrollment_group)
+
+acs_nces_data |> 
+  mutate(rent_delta = gross_rent_median_dollars - lag(gross_rent_median_dollars), 
+         value_delta = value_median_dollars - lag(value_median_dollars), 
+         edu_level_delta = percent_educational_attainment_graduate_or_professional_degree - lag(percent_educational_attainment_graduate_or_professional_degree)) |> 
+
+  mutate(gentrifying = if_else((rent_delta > 0 | value_delta > 0) & edu_level_delta > 0.2, TRUE, FALSE)) |> 
+  select(year, rent_delta, value_delta, edu_level_delta, gentrifying, everything()) |> 
+  filter(year != 2010) |> 
+  pivot_longer(cols = contains('enrollment') & !starts_with('total') & (starts_with('grade') | starts_with('kinder')), 
+               names_to = 'enrollment_group', 
+               values_to = 'enrollment_number') |> 
+  mutate(pct_total_enrollment = 100*enrollment_number/total_enrollment) |> 
+  select(enrollment_group, enrollment_number, total_enrollment, pct_total_enrollment, everything()) |> 
+  ggplot() +
+  geom_tile(aes(x = year, 
+             y = pct_total_enrollment, 
+             fill = gentrifying), width = 1, height = 1) + 
+  scale_fill_brewer(palette = 'Paired') + 
+  geom_line(aes(x = year, 
+             y = pct_total_enrollment)) + 
+  facet_wrap(~enrollment_group)
+  scale_color_viridis(discrete = T)
 ```
 
 # Visualizations
