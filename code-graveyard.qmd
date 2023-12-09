@@ -136,3 +136,43 @@ nces_allYears |>
 
 
 ```
+
+```{r old-housing-value-viz}
+all_data_gentrify |> 
+  pivot_longer(cols = c(value_less_than_50_000, value_50_000_to_99_999, value_100_000_to_149_999, value_150_000_to_199_999, value_200_000_to_299_999, value_300_000_to_499_999, value_500_000_to_999_999, value_1_000_000_or_more),
+               names_to = 'value_category', 
+               values_to = 'number_of_properties') |> 
+  select(year, value_median_dollars, value_category, number_of_properties) |> 
+  mutate(year = as.character(year), 
+         value_category = case_when(
+           value_category == 'value_less_than_50_000' ~ 'Less than $50k',
+           value_category == 'value_50_000_to_99_999' ~ '$50k - $99k', 
+           value_category == 'value_100_000_to_149_999' ~ '$100k - $149k', 
+           value_category == 'value_150_000_to_199_999' ~ '$150k - $199k', 
+           value_category == 'value_200_000_to_299_999' ~ '$200k - $299k',
+           value_category == 'value_300_000_to_499_999' ~ '$300k - $499k', 
+           value_category == 'value_500_000_to_999_999' ~ '$500k - $999k', 
+           value_category == 'value_1_000_000_or_more' ~ '$1000000+')) |> 
+  
+  ggplot() + 
+  geom_col(aes(x = factor(value_category, 
+                          levels = c('Less than $50k',
+                                     '$50k - $99k', 
+                                     '$100k - $149k', 
+                                     '$150k - $199k', 
+                                     '$200k - $299k',
+                                     '$300k - $499k', 
+                                     '$500k - $999k', 
+                                     '$1000000+'), 
+                          ordered = TRUE),
+               y = number_of_properties), 
+           position = 'dodge') + 
+  facet_grid(~year) +
+  labs(title = "Detroit's Housing Values are Increasing",
+       subtitle = "Detroit Housing Values, 2010-2020", 
+       x = 'Housing Value', 
+       y = 'Number of Properties') + 
+  coord_flip() +
+  scale_fill_brewer(palette = 'Greens') +
+  theme_minimal()
+```
