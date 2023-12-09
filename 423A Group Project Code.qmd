@@ -1060,22 +1060,48 @@ grid.arrange(p1, p2, ncol = 1)
 
 ```
 
-```{r viz-readiness}
-all_data_gentrify_final |> 
+```{r viz-readiness-agg}
+#Create a new data frame with 'pct_ready' column
+all_data_gentrify_pct_ready_pivot <- all_data_gentrify_final |> 
   pivot_longer(cols = contains('ready'), 
              names_to = 'subject_readiness', 
-             values_to = 'pct_ready') |>
-  ggplot() +
+             values_to = 'pct_ready') |> 
+  mutate(subject_readiness = str_replace_all(subject_readiness, "grade_11_", ""),
+         subject_readiness = str_replace_all(subject_readiness, "all_subject_percent_ready", "Percent Ready on All Subjects"),
+         subject_readiness = str_replace_all(subject_readiness, "english_percent_ready", "Percent Ready on English"),
+         subject_readiness = str_replace_all(subject_readiness, "math_percent_ready", "Percent Ready on Math"))
+
+all_data_gentrify_pct_ready_pivot |> 
+  ggplot() + 
+  geom_boxplot(aes(x = gentrifying, 
+                   y = pct_ready), 
+               fill = 'darkgreen', 
+               alpha = 0.9) +
+  facet_grid(~subject_readiness) + 
+  labs(title = "Gentrification's Relationship To Academic Achievement",
+       subtitle = "11th Grade Student's Median Scores in English and Math Drop in Gentrifying Years",
+       x = "Gentrifying Year", 
+       y = "Percent of Students 'Ready' for College Level Work")
+
+```
+
+```{r viz-readiness-over-time}
+ggplot(data = all_data_gentrify_pct_ready_pivot) +
   geom_line(aes(x = year, 
                 y = pct_ready), 
             color = 'lightgreen', 
             linewidth = 2) +
-  geom_point(data = filter(year == 2011 | year == 2018),
+  geom_point(data = filter(all_data_gentrify_pct_ready_pivot, as.character(gentrifying) == "TRUE"),
              aes(x = year, 
                  y = pct_ready), 
              color = 'darkgreen',
-             size = 2.5) +
-  facet_wrap(~subject_readiness) 
+             size = 3.5) +
+  facet_wrap(~subject_readiness) + 
+  labs(title = "Investigating 'All Subjects'",
+       subtitle = "In gentrifying years, 11th grade students score lower on standardized tests\nthan in years around those counting as gentirfying",
+       x = "Year", 
+       y = "Percent of Students 'Ready' for College Level Work")
+
 ```
 
 ```{r}
