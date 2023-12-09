@@ -878,11 +878,45 @@ all_data_gentrify |>
   facet_wrap(~education_level, ncol = 4) +
   theme_minimal() + 
   theme(legend.position = 'none') +
-  scale_fill_manual(values = c('darkgreen', 'darkgreen', 'darkgreen', 'darkgreen')) + 
+  scale_fill_manual(values = c('darkgreen', 'grey', 'darkgreen', 'darkgreen')) + 
   labs(title = "Population Education-Level Demographic Change, 2010-2018",
        subtitle = 'Less High School Droups and More College Graduates',
        x = "Year", 
        y = "% of Population at Education Level")
+```
+
+```{r}
+all_data_gentrify |> 
+  pivot_longer(cols = contains('percent_educational_attainment') & !contains("25_years_and_over") & !contains('or_higher'), 
+               names_to = 'education_level', 
+               values_to = 'percent_at_level') |>
+  mutate(education_level = str_replace_all(education_level, "percent_educational_attainment_", ""), 
+         education_level = str_replace_all(education_level, "9th_to_12th_grade_no_diploma", "Some High School"), 
+         education_level = str_replace_all(education_level, "associates_degree", "Associate's Degree"), 
+         education_level = str_replace_all(education_level, "bachelors_degree", "Bachelor's Degree"), 
+         education_level = str_replace_all(education_level, "graduate_or_professional_degree", "Graduate Degree"), 
+         education_level = str_replace_all(education_level, "high_school_graduate_includes_equivalency", "High School Graduate"),
+         education_level = str_replace_all(education_level, "less_than_9th_grade", "Less than 9th Grade"), 
+         education_level = str_replace_all(education_level, "some_college_no_degree", "Some College")) |>
+  filter(education_level == "Associate's Degree" | education_level == "Bachelor's Degree" | education_level == "Graduate Degree" | education_level == "Some High School") |> 
+  ggplot() + 
+  geom_area(aes(x = year,
+               y = percent_at_level, 
+               fill = factor(education_level,
+                    ordered = TRUE,
+                    levels = c("Graduate Degree",
+                               "Bachelor's Degree",
+                               "Associate's Degree",
+                               "Some High School"
+                               )))) +
+  theme_minimal() + 
+  scale_fill_manual("Education Level", values = rev(carto.pal('green.pal', 4))) +
+  #scale_fill_brewer(palette = 'Greens') + 
+  labs(title = "Population Education-Level Demographic Change, 2010-2018",
+       subtitle = 'Less High School Droups and More College Graduates',
+       x = "Year", 
+       y = "% of Population at Education Level", 
+       fill = 'Education Level')
 ```
 
 ```{r}
@@ -899,6 +933,7 @@ all_data_gentrify |>
                 y = percent_at_level), 
            fill = 'darkgreen') + 
   facet_grid(~education_level)
+
 ```
 
 ## Verifying Gentrification Part c - Increase in Housing Costs
@@ -934,6 +969,15 @@ p2 <- all_data_gentrify |>
 
 p1 + p2 + plot_annotation(title = 'Changes in Housing Costs, Year over Year', 
                           subtitle = 'Determining Gentrification, Part 3 - Is there an Increase in the Cost of Housing?')
+```
+
+```{r}
+library(GGally)
+
+all_data_gentrify |> 
+  filter(year > 2010) |> 
+  select(contains('delta')) |> 
+  ggpairs(ggplot)
 ```
 
 ```{r}
