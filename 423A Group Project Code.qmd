@@ -1069,13 +1069,10 @@ all_data_gentrify_pct_ready_pivot <- all_data_gentrify_final |>
 all_data_gentrify_pct_ready_pivot |> 
   ggplot() + 
   geom_boxplot(aes(x = gentrifying, 
-                   y = pct_ready, 
-                   fill = factor(all_data_gentrify_final$gentrifying, 
-                             levels = c("FALSE", 
-                                        "TRUE")))) +
-  theme_minimal() + 
+                   y = pct_ready), 
+               fill = 'darkgreen', 
+               alpha = 0.9) +
   scale_fill_manual("Gentrifying", values = c("lightgreen", "darkgreen")) +
-  theme(legend.position = 'none') +
   facet_grid(~subject_readiness) + 
   labs(title = "Gentrification's Relationship To Academic Achievement",
        subtitle = "11th Grade Student's Median Scores in English and Math Drop in Gentrifying Years",
