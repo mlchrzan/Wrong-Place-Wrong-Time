@@ -1060,6 +1060,24 @@ grid.arrange(p1, p2, ncol = 1)
 
 ```
 
+```{r viz-readiness}
+all_data_gentrify_final |> 
+  pivot_longer(cols = contains('ready'), 
+             names_to = 'subject_readiness', 
+             values_to = 'pct_ready') |>
+  ggplot() +
+  geom_line(aes(x = year, 
+                y = pct_ready), 
+            color = 'lightgreen', 
+            linewidth = 2) +
+  geom_point(data = filter(year == 2011 | year == 2018),
+             aes(x = year, 
+                 y = pct_ready), 
+             color = 'darkgreen',
+             size = 2.5) +
+  facet_wrap(~subject_readiness) 
+```
+
 ```{r}
 
 all_data_gentrify |> 
