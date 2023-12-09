@@ -673,13 +673,33 @@ all_data
 all_data_gentrify <- all_data |> 
   mutate(rent_delta = gross_rent_median_dollars - lag(gross_rent_median_dollars), 
          value_delta = value_median_dollars - lag(value_median_dollars), 
-         edu_level_delta = percent_educational_attainment_graduate_or_professional_degree - lag(percent_educational_attainment_graduate_or_professional_degree), 
+         edu_level_delta = percent_educational_attainment_percent_bachelors_degree_or_higher - lag(percent_educational_attainment_percent_bachelors_degree_or_higher), 
          housing_delta = housing_built - lag(housing_built)) |> 
 
-  mutate(gentrifying = if_else((rent_delta > 0 | value_delta > 0) & edu_level_delta > 0.1 & housing_delta > 0, TRUE, FALSE)) |> 
+  mutate(gentrifying = if_else((rent_delta > 0 | value_delta > 0) & edu_level_delta > 0 & housing_delta > 0, TRUE, FALSE)) |> 
   select(year, rent_delta, value_delta, edu_level_delta, housing_delta, gentrifying, everything())
 
 all_data_gentrify
+```
+
+```{r laisha}
+all_data_gentrify |> 
+  filter(year != 2010) |> 
+  pivot_longer(cols = contains('enrollment') & !starts_with('grade') & !starts_with('kinder') & !starts_with('total'), 
+               names_to = 'enrollment_group', 
+               values_to = 'enrollment_number') |> 
+  mutate(pct_total_enrollment = 100*enrollment_number/total_enrollment) |> 
+  select(enrollment_group, enrollment_number, total_enrollment, pct_total_enrollment, everything()) |>
+  ggplot() + 
+  geom_line(aes(x = year, 
+             y = enrollment_number, 
+             color = enrollment_group)) + 
+  scale_color_viridis(discrete = T) + 
+  facet_wrap(~enrollment_group) +
+  geom_line(aes(x = year, 
+                y = total_enrollment), 
+            size = 2, 
+            color = 'red')
 ```
 
 ```{r verify-gentrification-NEW}
@@ -688,6 +708,7 @@ all_data_gentrify |>
   ggplot(aes(x = gentrifying, 
              y = total_enrollment)) + 
   geom_boxplot()
+
 
 #PIVOTS SECTIONS TO GROUP VARIABLES
 all_data_gentrify |> 
@@ -760,81 +781,8 @@ all_data_gentrify |>
 
 ```
 
-```{r}
-unrestrict_model |> 
-  filter(year != 2010) |> 
-  ggplot(aes(x = gentrifying, 
-             y = total_enrollment)) + 
-  geom_boxplot()
-
-#PIVOTS SECTIONS TO GROUP VARIABLES
-unrestrict_model |> 
-  filter(year != 2010) |> 
-  pivot_longer(cols = contains('enrollment') & !starts_with('grade') & !starts_with('kinder') & !starts_with('total'), 
-               names_to = 'enrollment_group', 
-               values_to = 'enrollment_number') |> 
-  mutate(pct_total_enrollment = 100*enrollment_number/total_enrollment) |> 
-  select(enrollment_group, enrollment_number, total_enrollment, pct_total_enrollment, everything()) |> 
-  ggplot(aes(x = enrollment_group, 
-             y = pct_total_enrollment)) + 
-  geom_boxplot(aes(fill = gentrifying)) +
-  coord_flip()
-
-unrestrict_model |> 
-  filter(year != 2010) |>  
-  pivot_longer(cols = contains('enrollment') & !starts_with('total') & (starts_with('grade') | starts_with('kinder')), 
-               names_to = 'enrollment_group', 
-               values_to = 'enrollment_number') |> 
-  mutate(pct_total_enrollment = 100*enrollment_number/total_enrollment) |> 
-  select(enrollment_group, enrollment_number, total_enrollment, pct_total_enrollment, everything()) |> 
-  ggplot(aes(x = enrollment_group, 
-             y = pct_total_enrollment)) + 
-  geom_boxplot(aes(fill = gentrifying)) +
-  coord_flip()
-
-unrestrict_model |> 
-  filter(year != 2010) |> 
-  pivot_longer(cols = contains("graduation"), 
-               names_to = 'grad_rate_timeframe', 
-               values_to = 'grad_rate') |> 
-  ggplot(aes(x = grad_rate_timeframe, 
-             y = grad_rate)) + 
-  geom_boxplot(aes(fill = gentrifying))
-
-unrestrict_model |> 
-  filter(year != 2010) |> 
-  pivot_longer(cols = contains("dropout"), 
-               names_to = 'dropout_rate_timeframe', 
-               values_to = 'dropout_rate') |> 
-  ggplot(aes(x = dropout_rate_timeframe, 
-             y = dropout_rate)) + 
-  geom_boxplot(aes(fill = gentrifying))
-
-unrestrict_model |> 
-  filter(year != 2010) |> 
-  pivot_longer(cols = contains('ready'), 
-               names_to = 'subject_readiness', 
-               values_to = 'pct_ready') |> 
-  ggplot(aes(x = subject_readiness, 
-             y = pct_ready)) + 
-  geom_boxplot(aes(fill = gentrifying)) +
-  coord_flip()
-```
-
 ```{r verify-gentrification-OLD}
 #WANT TO HAVE A LINE GRAPH OVER YEAR WITH DIFFERENT LINES FOR ENROLLMENT WITH BACKGROUND COLOR SHADING FOR WHEN A YEAR COUNTS AS BEING GENTRIFIED
-all_data_gentrify |> 
-  filter(year != 2010) |> 
-  pivot_longer(cols = contains('enrollment') & !starts_with('total') & (starts_with('grade') | starts_with('kinder')), 
-               names_to = 'enrollment_group', 
-               values_to = 'enrollment_number') |> 
-  mutate(pct_total_enrollment = 100*enrollment_number/total_enrollment) |> 
-  select(enrollment_group, enrollment_number, total_enrollment, pct_total_enrollment, everything()) |> 
-  ggplot(aes(x = year, 
-             y = pct_total_enrollment)) + 
-  geom_line(aes(color = gentrifying)) +
-  facet_wrap(~enrollment_group)
-
 all_data_gentrify |> 
   filter(year != 2010) |> 
   pivot_longer(cols = contains('enrollment') & !starts_with('total') & (starts_with('grade') | starts_with('kinder')), 
