@@ -972,7 +972,7 @@ p1 + p2 + plot_annotation(title = 'Changes in Housing Costs, Year over Year',
                           subtitle = 'Determining Gentrification, Part 3 - Is there an Increase in the Cost of Housing?')
 ```
 
-## Combing All Metrics
+## Combing All 4 Gentrification Metrics
 
 ```{r correlation-of-deltas}
 all_data_gentrify |> 
@@ -987,10 +987,35 @@ all_data_gentrify |>
          high = "darkgreen")
 ```
 
-```{r}
+```{r viz-all-4}
 all_data_gentrify |> 
+  filter(edu_level_delta > 0, 
+         housing_delta > 0) |> 
   ggplot() + 
-  geom_point
+  geom_point(aes(x = rent_delta, 
+                 y = value_delta, 
+                 color = housing_delta, 
+                 size = edu_level_delta)) +
+  scale_color_gradient(low = "lightgreen", high = "darkgreen")  +
+  geom_vline(aes(xintercept = 0), linetype="dashed", color = "black") + 
+  geom_hline(aes(yintercept = 0), linetype="dashed", color = "black") +
+  theme_minimal() +
+  geom_text_repel(aes(x = rent_delta, 
+                 y = value_delta,
+                 label = year)) + 
+  labs(title = "When is Detroit Gentrifying?",
+       subtitle = "Only 2011 and 2018 fit all three criteria",
+       x = 'Change in Median Rent', 
+       y = 'Change in Median Value', 
+       color = 'Change in Housing Built', 
+       size = 'Change in Educational Attainment') + 
+  annotate("text", 
+           label = "Note: Years 2012, 2015-2017 not included\ndue to having negative changes\nin educational attainment and housing built",
+           x = 30,
+           y = -6000,
+           hjust = 1,
+           size = 2.25,
+           fontface = 'italic')
 ```
 
 ```{r}
