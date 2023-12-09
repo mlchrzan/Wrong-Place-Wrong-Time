@@ -176,3 +176,125 @@ all_data_gentrify |>
   scale_fill_brewer(palette = 'Greens') +
   theme_minimal()
 ```
+
+```{r}
+all_data_gentrify |> 
+  pivot_longer(cols = contains('percent_educational_attainment') & !contains("25_years_and_over") & !contains('or_higher'), 
+               names_to = 'education_level', 
+               values_to = 'percent_at_level') |>
+  mutate(education_level = str_replace_all(education_level, "percent_educational_attainment_", ""), 
+         education_level = str_replace_all(education_level, "9th_to_12th_grade_no_diploma", "Some High School"), 
+         education_level = str_replace_all(education_level, "associates_degree", "Associate's Degree"), 
+         education_level = str_replace_all(education_level, "bachelors_degree", "Bachelor's Degree"), 
+         education_level = str_replace_all(education_level, "graduate_or_professional_degree", "Graduate Degree"), 
+         education_level = str_replace_all(education_level, "high_school_graduate_includes_equivalency", "High School Graduate"),
+         education_level = str_replace_all(education_level, "less_than_9th_grade", "Less than 9th Grade"), 
+         education_level = str_replace_all(education_level, "some_college_no_degree", "Some College")) |>
+  ggplot() + 
+  geom_col(aes(x = year,
+               y = percent_at_level, 
+               fill = factor(education_level,
+                    ordered = TRUE,
+                    levels = c("Associate's Degree", 
+                               "Some High School",
+                               "Bachelor's Degree",
+                               "Graduate Degree")))) +
+  facet_wrap(~education_level, ncol = 4) +
+  theme_minimal() + 
+  theme(legend.position = 'none') +
+  scale_fill_manual(values = c('darkgreen', 'darkgreen', 'darkgreen', 'darkgreen')) 
+```
+
+```{r laisha-viz-acs-ed-1}
+ggplot(educ_detroit, aes(x = factor(year), group = 1)) +
+  geom_line(aes(y = percent_educational_attainment_9th_to_12th_grade_no_diploma, 
+                color = "No High School Diploma"), linewidth = 1) +
+  geom_line(aes(y = percent_educational_attainment_high_school_graduate_includes_equivalency,
+                color = "GED"), linewidth = 1) +
+  geom_line(aes(y = percent_educational_attainment_some_college_no_degree, 
+                color = "Some college"), linewidth = 1) +
+  geom_line(aes(y = percent_educational_attainment_associates_degree, 
+                color = "Associate's Degree"), linewidth = 1) +
+  geom_line(aes(y = percent_educational_attainment_bachelors_degree, 
+                color = "Bachelor's Degree"), linewidth = 1) +
+  geom_line(aes(y = percent_educational_attainment_graduate_or_professional_degree, 
+                color = "PhD"), linewidth = 1) +
+  labs(title = "Population and Education Trends in Detroit, MI",
+       x = "\nYear",
+       y = "% of Population\n",
+       color = "") +
+  scale_color_manual(values = c("No High School Diploma" = "blue",
+                                "GED" = "purple",
+                                "Some college" = "pink",
+                                "Associate's Degree" = "gray",
+                                "Bachelor's Degree" = "green", 
+                                "PhD" = "red"),
+                     breaks = c("No High School Diploma",
+                                "GED",
+                                "Some college",
+                                "Associate's Degree",
+                                "Bachelor's Degree",
+                                "PhD")) +
+  geom_vline(xintercept = c("2019"), linetype = "dashed", color = "gray", linewidth = 1) +
+  theme_minimal() +
+  scale_x_discrete(labels = educ_detroit$year) +
+  theme(axis.text.x = element_text(hjust = 0.8, angle = 45, vjust=0.5)) 
+```
+
+```{r viz-acs-ed-2}
+educ_detroit |>
+  select(year, 
+         percent_bachelors_or_higher = percent_educational_attainment_percent_bachelors_degree_or_higher,
+         percent_high_school_or_higher = percent_educational_attainment_percent_high_school_graduate_or_higher) |>
+  pivot_longer(cols = -year, 
+               names_to = "educational_attainment",
+               values_to = "percentage") |>
+  mutate(educational_attainment = gsub("percent_", "", educational_attainment),
+         educational_attainment = factor(educational_attainment, 
+                                         levels = c("high_school_or_higher", "bachelors_or_higher"))) |>
+  ggplot(aes(x = year, 
+             y = percentage, 
+             fill = educational_attainment)) +
+    geom_area(position = "identity", 
+              alpha = 0.7) +
+    scale_fill_manual(values = c("high_school_or_higher" = "purple", "bachelors_or_higher" = "green"),
+                      name = "Educational Attainment",
+                      labels = c("high_school_or_higher" = "GED or higher", "bachelors_or_higher" = "Bachelor's or higher")) +
+    labs(title = "Educational Attainment in Detroit",
+         x = "\nYear",
+         y = "% of Population\n",
+         fill = "Educational Attainment") +
+    theme_minimal()
+```
+
+```{r opp-insights}
+#FOR CONSIDERATION…Opportunity Insights
+#Opportunity Insights Data
+cz_coll_allSubgroups <- read_csv("cz_coll_allSubgroups.csv") 
+
+cz_frac_coll_plus2016 <- read_csv("cz_frac_coll_plus2016.csv") 
+
+cz_hs_allSubgroups <- read_csv('cz_hs_allSubgroups.csv') 
+
+
+coll_gradRates <- cz_coll_allSubgroups |> 
+  filter(name == 'Detroit, MI')
+
+hs_gradRates <- cz_hs_allSubgroups |> 
+  filter(name == 'Detroit, MI')
+
+det_gradRates <- inner_join(coll_gradRates, hs_gradRates, 
+           by = c('cz', 'name'))
+
+#Remove Late Cohorts
+det_gradRates <- det_gradRates |> 
+  select(-ends_with("_l"))
+
+#Not Sure What We're Doing with this one?? 
+fracColl <- cz_frac_coll_plus2016 |> 
+  rename(name = Name) |> 
+  filter(name == 'Detroit, MI')
+
+
+
+```
