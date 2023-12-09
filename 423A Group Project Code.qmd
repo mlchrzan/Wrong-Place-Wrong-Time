@@ -757,15 +757,6 @@ all_data_gentrify |>
              y = dropout_rate)) + 
   geom_boxplot(aes(fill = gentrifying))
 
-all_data_gentrify |> 
-  filter(year != 2010) |> 
-  pivot_longer(cols = contains('ready'), 
-               names_to = 'subject_readiness', 
-               values_to = 'pct_ready') |> 
-  ggplot(aes(x = subject_readiness, 
-             y = pct_ready)) + 
-  geom_boxplot(aes(fill = gentrifying)) +
-  coord_flip()
 ```
 
 ```{r}
@@ -1060,6 +1051,10 @@ grid.arrange(p1, p2, ncol = 1)
 
 ```
 
+```{r viz-enrollment-by-type}
+
+```
+
 ```{r viz-readiness-agg}
 #Create a new data frame with 'pct_ready' column
 all_data_gentrify_pct_ready_pivot <- all_data_gentrify_final |> 
@@ -1074,14 +1069,26 @@ all_data_gentrify_pct_ready_pivot <- all_data_gentrify_final |>
 all_data_gentrify_pct_ready_pivot |> 
   ggplot() + 
   geom_boxplot(aes(x = gentrifying, 
-                   y = pct_ready), 
-               fill = 'darkgreen', 
-               alpha = 0.9) +
+                   y = pct_ready, 
+                   fill = factor(all_data_gentrify_final$gentrifying, 
+                             levels = c("FALSE", 
+                                        "TRUE")))) +
+  theme_minimal() + 
+  scale_fill_manual("Gentrifying", values = c("lightgreen", "darkgreen")) +
+  theme(legend.position = 'none') +
   facet_grid(~subject_readiness) + 
   labs(title = "Gentrification's Relationship To Academic Achievement",
        subtitle = "11th Grade Student's Median Scores in English and Math Drop in Gentrifying Years",
        x = "Gentrifying Year", 
        y = "Percent of Students 'Ready' for College Level Work")
+
+```
+
+```{r viz-gradrate}
+all_data_gentrify_final |> 
+  ggplot() + 
+  geom_boxplot(aes(x = gentrifying, 
+               y = graduation_rate_4_year))
 
 ```
 
@@ -1104,72 +1111,11 @@ ggplot(data = all_data_gentrify_pct_ready_pivot) +
 
 ```
 
-```{r}
-
-all_data_gentrify |> 
-  mutate(pct_econ_disadv_enrollment = 100*economic_disadvantaged_enrollment/total_enrollment) |> 
-  ggplot(aes(x = gross_rent_median_dollars, 
-             y = pct_econ_disadv_enrollment)) + 
-  geom_point() + 
-  geom_smooth(method = 'lm', se = FALSE) +
-  geom_text_repel(aes(label = year))
-
-all_data_gentrify |> 
-  mutate(pct_econ_disadv_enrollment = 100*economic_disadvantaged_enrollment/total_enrollment) |> 
-  #mutate(year = as.character(year)) |>
-  ggplot(aes(x = year, 
-             y = gross_rent_median_dollars, 
-             size = pct_econ_disadv_enrollment)) + 
-  geom_point() 
-```
-
-```{r}
-all_data_gentrify |> 
-  mutate(pct_econ_disadv_enrollment = 100*economic_disadvantaged_enrollment/total_enrollment) |> 
-  ggplot(aes(x = value_median_dollars, 
-             y = pct_econ_disadv_enrollment)) + 
-  geom_point() + 
-  geom_smooth(method = 'lm', se = FALSE) +
-  geom_text_repel(aes(label = year))
-
-all_data_gentrify |> 
-  mutate(pct_econ_disadv_enrollment = 100*economic_disadvantaged_enrollment/total_enrollment) |> 
-  ggplot(aes(x = value_median_dollars, 
-             y = pct_econ_disadv_enrollment)) + 
-  geom_point(aes(size = total_enrollment)) + 
-  geom_smooth(method = 'lm', se = FALSE) +
-  geom_text_repel(aes(label = year))
-
-all_data_gentrify |> 
-  mutate(pct_econ_disadv_enrollment = 100*economic_disadvantaged_enrollment/total_enrollment) |> 
-  mutate(year = as.character(year)) |>
-  ggplot(aes(x = year, 
-             y = value_median_dollars, 
-             size = pct_econ_disadv_enrollment)) + 
-  geom_point() 
-```
-
 ```{r relationship-testing}
-all_data_gentrify |> 
-  
-  ggplot(aes(x = gross_rent_median_dollars, 
-             y = value_median_dollars)) + 
-  geom_point() + 
-  geom_smooth(method = 'lm', 
-              se = FALSE)
-
-all_data_gentrify |> 
-  mutate(year = as.character(year)) |> 
-  ggplot() + 
-  geom_point(aes(x = year, 
-                 y = gross_rent_median_dollars, 
-                 size = total_enrollment)) 
-
-all_data_gentrify |> 
-  mutate(year = as.character(year)) |> 
-  ggplot(aes(x = total_enrollment, 
-                 y = gross_rent_median_dollars)) + 
-  geom_point() + 
-  geom_smooth(method = 'lm') +
-  geom_text_repel(aes(label = year))
+all_data_gentrify_final |> 
+  filter(year > 2010) |> 
+  select(contains('enrollment')) |>
+  rename_with(~str_remove_all(., "_enrollment"), contains("enrollment")) |> 
+  ggcorr(method = c("everything", "pearson"), 
+         high = "darkgreen")
 ```
