@@ -298,3 +298,41 @@ fracColl <- cz_frac_coll_plus2016 |>
 
 
 ```
+
+```{r}
+# Create the boxplot
+p1 <- all_data_gentrify_final |> 
+  ggplot() + 
+  geom_boxplot(aes(x = gentrifying, 
+                   y = total_enrollment, 
+                   fill = factor(all_data_gentrify_final$gentrifying, 
+                             levels = c("FALSE", 
+                                        "TRUE")))) +
+  theme_minimal() + 
+  scale_fill_manual("Gentrifying", values = c("lightgreen", "darkgreen")) +
+  theme(legend.position = 'none') +
+  labs(title = 'Gentrifying Years Have Larger Enrollment', 
+       x = 'Gentrifying Years', 
+       y = 'Total Enrollment')
+
+# Create the line plot
+p2 <- all_data_gentrify_final |> 
+  ggplot() + 
+  geom_line(aes(x = year, 
+                y = total_enrollment, 
+                group = 1), 
+            color = 'lightgreen', 
+            linewidth = 1.5) +
+  geom_point(data = filter(all_data_gentrify_final, as.character(gentrifying) == "TRUE"), 
+             aes(x = year, 
+                 y = total_enrollment), 
+             color = 'darkgreen',
+             size = 4) +
+  theme_minimal() + 
+  theme(legend.position = 'none') +
+  labs(x = 'Year', 
+       y = 'Total Enrollment')
+
+# Combine the two plots
+grid.arrange(p1, p2, ncol = 1)
+```
