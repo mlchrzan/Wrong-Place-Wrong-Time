@@ -336,3 +336,83 @@ p2 <- all_data_gentrify_final |>
 # Combine the two plots
 grid.arrange(p1, p2, ncol = 1)
 ```
+
+```{r verify-gentrification-OLD}
+#WANT TO HAVE A LINE GRAPH OVER YEAR WITH DIFFERENT LINES FOR ENROLLMENT WITH BACKGROUND COLOR SHADING FOR WHEN A YEAR COUNTS AS BEING GENTRIFIED
+all_data_gentrify |> 
+  filter(year != 2010) |> 
+  pivot_longer(cols = contains('enrollment') & !starts_with('total') & (starts_with('grade') | starts_with('kinder')), 
+               names_to = 'enrollment_group', 
+               values_to = 'enrollment_number') |> 
+  mutate(pct_total_enrollment = 100*enrollment_number/total_enrollment) |> 
+  select(enrollment_group, enrollment_number, total_enrollment, pct_total_enrollment, everything()) |> 
+  ggplot() +
+  geom_tile(aes(x = year, 
+             y = pct_total_enrollment, 
+             fill = gentrifying), width = 1, height = 1) + 
+  scale_fill_brewer(palette = 'Paired') + 
+  geom_line(aes(x = year, 
+             y = pct_total_enrollment)) + 
+  facet_wrap(~enrollment_group)
+  scale_color_viridis(discrete = T)
+```
+
+```{r pct-ready-draft-figure}
+all_data_gentrify |> 
+  filter(year != 2010) |>
+  pivot_longer(cols = contains('ready'), 
+             names_to = 'subject_readiness', 
+             values_to = 'pct_ready') |>
+  ggplot() +
+  geom_tile(aes(x = year,
+                y = pct_ready,
+                fill = gentrifying), width = 1, height = 1) +
+  geom_line(aes(x = year, 
+           y = pct_ready)) +
+  facet_wrap(~subject_readiness) +
+  scale_color_viridis(discrete = T)
+```
+
+```{r verify-gentrification-NEW}
+all_data_gentrify |> 
+  filter(year != 2010) |> 
+  ggplot(aes(x = gentrifying, 
+             y = total_enrollment)) + 
+  geom_boxplot()
+
+```
+
+```{r enrollment-by-type}
+all_data_gentrify_final |>  
+  pivot_longer(cols = contains('enrollment') & !starts_with('grade') & !starts_with('kinder') & !starts_with('total'), 
+               names_to = 'enrollment_group', 
+               values_to = 'enrollment_number') |> 
+  mutate(pct_total_enrollment = 100*enrollment_number/total_enrollment, 
+         enrollment_group = str_replace_all(enrollment_group, "_enrollment", "")) |> 
+  select(enrollment_group, enrollment_number, total_enrollment, pct_total_enrollment, everything()) |>
+  ggplot() + 
+  geom_line(aes(x = year, 
+             y = enrollment_number, 
+             color = enrollment_group)) + 
+  scale_color_viridis(discrete = T) + 
+  geom_line(aes(x = year, 
+                y = total_enrollment), 
+            size = 2, 
+            color = 'grey') + 
+  facet_wrap(~enrollment_group) 
+
+all_data_gentrify_final |>  
+  pivot_longer(cols = contains('enrollment') & !starts_with('grade') & !starts_with('kinder') & !starts_with('total'), 
+               names_to = 'enrollment_group', 
+               values_to = 'enrollment_number') |> 
+  mutate(pct_total_enrollment = 100*enrollment_number/total_enrollment, 
+         enrollment_group = str_replace_all(enrollment_group, "_enrollment", "")) |> 
+  select(enrollment_group, enrollment_number, total_enrollment, pct_total_enrollment, everything()) |>
+  ggplot(aes(x = gentrifying, 
+             y = pct_total_enrollment)) + 
+  geom_violin(aes(fill = gentrifying)) + 
+  facet_wrap(~enrollment_group) + 
+  scale_fill_manual("Gentrifying", values = c('grey', 'darkgreen')) +
+  theme(legend.position = 'none') + 
+  coord_flip()
+```

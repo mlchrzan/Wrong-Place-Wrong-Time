@@ -45,7 +45,7 @@ library(here)
 
 # Research Question
 
-What relationship, if any, exists between gentrification, as operationalized by the Pearman and Greene (2022) model, and educational outcomes in San Francisco and Detroit between 2010 and 2020?
+What relationship, if any, exists between gentrification, as operationalized by the Pearman and Greene (2022) model, and educational outcomes in Detroit between 2010 and 2020?
 
 # Import Data
 
@@ -686,115 +686,6 @@ all_data_gentrify <- all_data |>
 all_data_gentrify
 ```
 
-```{r laisha}
-all_data_gentrify |> 
-  filter(year != 2010) |> 
-  pivot_longer(cols = contains('enrollment') & !starts_with('grade') & !starts_with('kinder') & !starts_with('total'), 
-               names_to = 'enrollment_group', 
-               values_to = 'enrollment_number') |> 
-  mutate(pct_total_enrollment = 100*enrollment_number/total_enrollment) |> 
-  select(enrollment_group, enrollment_number, total_enrollment, pct_total_enrollment, everything()) |>
-  ggplot() + 
-  geom_line(aes(x = year, 
-             y = enrollment_number, 
-             color = enrollment_group)) + 
-  scale_color_viridis(discrete = T) + 
-  facet_wrap(~enrollment_group) +
-  geom_line(aes(x = year, 
-                y = total_enrollment), 
-            size = 2, 
-            color = 'red')
-```
-
-```{r verify-gentrification-NEW}
-all_data_gentrify |> 
-  filter(year != 2010) |> 
-  ggplot(aes(x = gentrifying, 
-             y = total_enrollment)) + 
-  geom_boxplot()
-
-
-#PIVOTS SECTIONS TO GROUP VARIABLES
-all_data_gentrify |> 
-  filter(year != 2010) |> 
-  pivot_longer(cols = contains('enrollment') & !starts_with('grade') & !starts_with('kinder') & !starts_with('total'), 
-               names_to = 'enrollment_group', 
-               values_to = 'enrollment_number') |> 
-  mutate(pct_total_enrollment = 100*enrollment_number/total_enrollment) |> 
-  select(enrollment_group, enrollment_number, total_enrollment, pct_total_enrollment, everything()) |> 
-  ggplot(aes(x = enrollment_group, 
-             y = pct_total_enrollment)) + 
-  geom_boxplot(aes(fill = gentrifying)) +
-  coord_flip()
-
-all_data_gentrify |> 
-  filter(year != 2010) |>  
-  pivot_longer(cols = contains('enrollment') & !starts_with('total') & (starts_with('grade') | starts_with('kinder')), 
-               names_to = 'enrollment_group', 
-               values_to = 'enrollment_number') |> 
-  mutate(pct_total_enrollment = 100*enrollment_number/total_enrollment) |> 
-  select(enrollment_group, enrollment_number, total_enrollment, pct_total_enrollment, everything()) |> 
-  ggplot(aes(x = enrollment_group, 
-             y = pct_total_enrollment)) + 
-  geom_boxplot(aes(fill = gentrifying)) +
-  coord_flip()
-
-all_data_gentrify |> 
-  filter(year != 2010) |> 
-  pivot_longer(cols = contains("graduation"), 
-               names_to = 'grad_rate_timeframe', 
-               values_to = 'grad_rate') |> 
-  ggplot(aes(x = grad_rate_timeframe, 
-             y = grad_rate)) + 
-  geom_boxplot(aes(fill = gentrifying))
-
-all_data_gentrify |> 
-  filter(year != 2010) |> 
-  pivot_longer(cols = contains("dropout"), 
-               names_to = 'dropout_rate_timeframe', 
-               values_to = 'dropout_rate') |> 
-  ggplot(aes(x = dropout_rate_timeframe, 
-             y = dropout_rate)) + 
-  geom_boxplot(aes(fill = gentrifying))
-
-```
-
-```{r}
-all_data_gentrify |> 
-  filter(year != 2010) |>
-  pivot_longer(cols = contains('ready'), 
-             names_to = 'subject_readiness', 
-             values_to = 'pct_ready') |>
-  ggplot() +
-  geom_tile(aes(x = year,
-                y = pct_ready,
-                fill = gentrifying), width = 1, height = 1) +
-  geom_line(aes(x = year, 
-           y = pct_ready)) +
-  facet_wrap(~subject_readiness) +
-  scale_color_viridis(discrete = T)
-```
-
-```{r verify-gentrification-OLD}
-#WANT TO HAVE A LINE GRAPH OVER YEAR WITH DIFFERENT LINES FOR ENROLLMENT WITH BACKGROUND COLOR SHADING FOR WHEN A YEAR COUNTS AS BEING GENTRIFIED
-all_data_gentrify |> 
-  filter(year != 2010) |> 
-  pivot_longer(cols = contains('enrollment') & !starts_with('total') & (starts_with('grade') | starts_with('kinder')), 
-               names_to = 'enrollment_group', 
-               values_to = 'enrollment_number') |> 
-  mutate(pct_total_enrollment = 100*enrollment_number/total_enrollment) |> 
-  select(enrollment_group, enrollment_number, total_enrollment, pct_total_enrollment, everything()) |> 
-  ggplot() +
-  geom_tile(aes(x = year, 
-             y = pct_total_enrollment, 
-             fill = gentrifying), width = 1, height = 1) + 
-  scale_fill_brewer(palette = 'Paired') + 
-  geom_line(aes(x = year, 
-             y = pct_total_enrollment)) + 
-  facet_wrap(~enrollment_group)
-  scale_color_viridis(discrete = T)
-```
-
 # Visualizations
 
 ## Verifying Gentrification Part a - Increase in Housing Construction
@@ -873,7 +764,7 @@ all_data_gentrify |>
   theme(legend.position = 'none') +
   scale_fill_manual(values = c('darkgreen', 'grey', 'darkgreen', 'darkgreen')) + 
   labs(title = "Population Education-Level Demographic Change, 2010-2018",
-       subtitle = 'Less High School Droups and More College Graduates',
+       subtitle = 'Less High School Dropouts and More College Graduates',
        x = "Year", 
        y = "% of Population at Education Level")
 ```
@@ -1022,7 +913,7 @@ p1 <- all_data_gentrify_final |>
                              levels = c("FALSE", 
                                         "TRUE")))) +
   theme_minimal() + 
-  scale_fill_manual("Gentrifying", values = c("lightgreen", "darkgreen")) +
+  scale_fill_manual("Gentrifying", values = c("grey", "darkgreen")) +
   theme(legend.position = 'none') +
   labs(title = 'Gentrifying Years Have Larger Enrollment', 
        x = 'Gentrifying Years', 
@@ -1034,7 +925,7 @@ p2 <- all_data_gentrify_final |>
   geom_line(aes(x = year, 
                 y = total_enrollment, 
                 group = 1), 
-            color = 'lightgreen', 
+            color = 'grey', 
             linewidth = 1.5) +
   geom_point(data = filter(all_data_gentrify_final, as.character(gentrifying) == "TRUE"), 
              aes(x = year, 
@@ -1052,6 +943,25 @@ grid.arrange(p1, p2, ncol = 1)
 ```
 
 ```{r viz-enrollment-by-type}
+all_data_gentrify_final |>  
+  pivot_longer(cols = contains('enrollment') & !starts_with('grade') & !starts_with('kinder') & !starts_with('total'), 
+               names_to = 'enrollment_group', 
+               values_to = 'enrollment_number') |> 
+  mutate(pct_total_enrollment = 100*enrollment_number/total_enrollment, 
+         enrollment_group = str_replace_all(enrollment_group, "_enrollment", ""), 
+         enrollment_group = str_replace_all(enrollment_group, "_", " ")) |> 
+  select(enrollment_group, enrollment_number, total_enrollment, pct_total_enrollment, everything()) |> 
+  ggplot(aes(x = enrollment_group, 
+             y = pct_total_enrollment)) + 
+  geom_boxplot(aes(fill = gentrifying)) +
+  scale_fill_manual("Gentrifying", values = c('grey', 'darkgreen')) +
+  labs(title = "Who Shows Up for Class?",
+       subtitle = "Gentrification's Relationship to Enrollment in Detroit (by Groups)",
+       x = "Group", 
+       y = "Percent of Total Enrollment") + 
+  theme_minimal() +
+  theme(legend.position = 'bottom') +
+  coord_flip() 
 
 ```
 
@@ -1069,24 +979,68 @@ all_data_gentrify_pct_ready_pivot <- all_data_gentrify_final |>
 all_data_gentrify_pct_ready_pivot |> 
   ggplot() + 
   geom_boxplot(aes(x = gentrifying, 
-                   y = pct_ready), 
-               fill = 'darkgreen', 
+                   y = pct_ready, 
+                   fill = gentrifying), 
                alpha = 0.9) +
-  scale_fill_manual("Gentrifying", values = c("lightgreen", "darkgreen")) +
+  scale_fill_manual(values = c("grey", "darkgreen")) +
   facet_grid(~subject_readiness) + 
   labs(title = "Gentrification's Relationship To Academic Achievement",
        subtitle = "11th Grade Student's Median Scores in English and Math Drop in Gentrifying Years",
        x = "Gentrifying Year", 
-       y = "Percent of Students 'Ready' for College Level Work")
+       y = "Percent of Students 'Ready' for College Level Work") + 
+  theme(legend.position = 'none') 
 
 ```
 
 ```{r viz-gradrate}
 all_data_gentrify_final |> 
-  ggplot() + 
-  geom_boxplot(aes(x = gentrifying, 
-               y = graduation_rate_4_year))
+  pivot_longer(cols = contains("graduation"), 
+               names_to = 'grad_rate_timeframe', 
+               values_to = 'grad_rate') |> 
+  mutate(grad_rate_timeframe = str_replace_all(grad_rate_timeframe, 
+                                               "graduation_rate_4_year", 
+                                               "4 Year Graduation Rate"),
+         grad_rate_timeframe = str_replace_all(grad_rate_timeframe,
+                                               "graduation_rate_5_year", 
+                                               "5 Year Graduation Rate"),
+         grad_rate_timeframe = str_replace_all(grad_rate_timeframe,
+                                               "graduation_rate_6_year", 
+                                               "6 Year Graduation Rate")) |> 
+  ggplot(aes(x = grad_rate_timeframe, 
+             y = grad_rate)) + 
+  geom_boxplot(aes(fill = gentrifying)) +
+  scale_fill_manual("Gentrifying", values = c("grey", "darkgreen")) + 
+  labs(title = "Gentrification's Relationship to Graduation Rate", 
+       subtitle = 'Students Take Longer to Graduate in Gentriying Years', 
+       x = 'Graduation Rate Time Frame', 
+       y = 'Graduation Rate') + 
+  theme_minimal()
 
+```
+
+```{r viz-dropoutrate}
+all_data_gentrify_final |> 
+  pivot_longer(cols = contains("dropout"), 
+               names_to = 'dropout_rate_timeframe', 
+               values_to = 'dropout_rate') |> 
+  mutate(dropout_rate_timeframe = str_replace_all(dropout_rate_timeframe, 
+                                               "dropout_rate_4_year", 
+                                               "4 Year Dropout Rate"),
+         dropout_rate_timeframe = str_replace_all(dropout_rate_timeframe,
+                                               "dropout_rate_5_year", 
+                                               "5 Year Dropout Rate"),
+         dropout_rate_timeframe = str_replace_all(dropout_rate_timeframe,
+                                               "dropout_rate_6_year", 
+                                               "6 Year Dropout Rate")) |>
+  ggplot(aes(x = dropout_rate_timeframe, 
+             y = dropout_rate)) + 
+  geom_boxplot(aes(fill = gentrifying)) +
+  scale_fill_manual("Gentrifying", values = c("grey", "darkgreen")) + 
+  labs(title = "Gentrification's Relationship to Dropout Rate", 
+       subtitle = 'Rates of Dropout Are Consistent or Lower in Gentirfying Years', 
+       x = 'Dropout Rate Time Frame', 
+       y = 'Dropout Rate') + 
+  theme_minimal()
 ```
 
 ```{r viz-readiness-over-time}
@@ -1102,7 +1056,7 @@ ggplot(data = all_data_gentrify_pct_ready_pivot) +
              size = 3.5) +
   facet_wrap(~subject_readiness) + 
   labs(title = "Investigating 'All Subjects'",
-       subtitle = "In gentrifying years, 11th grade students score lower on standardized tests\nthan in years around those counting as gentirfying",
+       subtitle = "In gentrifying years, 11th grade students score lower on standardized tests\nthan in years around the gentirfying years",
        x = "Year", 
        y = "Percent of Students 'Ready' for College Level Work")
 
