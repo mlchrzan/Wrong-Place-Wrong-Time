@@ -892,7 +892,7 @@ all_data_gentrify |>
 ## Relationships with Educational Outcomes
 
 ```{r viz-enrollment}
-# Create the boxplot
+#Create the boxplot
 p1 <- all_data_gentrify_final |> 
   ggplot() + 
   geom_boxplot(aes(x = gentrifying, 
@@ -907,7 +907,7 @@ p1 <- all_data_gentrify_final |>
        x = 'Gentrifying Years', 
        y = 'Total Enrollment')
 
-# Create the line plot
+#Create the line plot
 p2 <- all_data_gentrify_final |> 
   ggplot() + 
   geom_line(aes(x = year, 
@@ -925,7 +925,7 @@ p2 <- all_data_gentrify_final |>
   labs(x = 'Year', 
        y = 'Total Enrollment')
 
-# Combine the two plots
+#Combine the two plots
 grid.arrange(p1, p2, ncol = 1)
 
 ```
@@ -1048,13 +1048,4 @@ ggplot(data = all_data_gentrify_pct_ready_pivot) +
        x = "Year", 
        y = "Percent of Students 'Ready' for College Level Work")
 
-```
-
-```{r relationship-testing}
-all_data_gentrify_final |> 
-  filter(year > 2010) |> 
-  select(contains('enrollment')) |>
-  rename_with(~str_remove_all(., "_enrollment"), contains("enrollment")) |> 
-  ggcorr(method = c("everything", "pearson"), 
-         high = "darkgreen")
 ```

@@ -441,3 +441,14 @@ all_data_gentrify |>
 
 
 ```
+
+```{r relationship-testing}
+all_data_gentrify_final |> 
+  filter(year > 2010) |>
+  select(-contains('grade')) |> 
+  select(contains('enrollment'), 
+         contains('delta')) |>
+  rename_with(~str_remove_all(., "_enrollment"), contains("enrollment")) |> 
+  ggcorr(method = c("everything", "pearson"), 
+         high = "darkgreen")
+```
