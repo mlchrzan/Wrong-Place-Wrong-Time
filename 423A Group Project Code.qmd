@@ -891,6 +891,14 @@ all_data_gentrify |>
 
 ## Relationships with Educational Outcomes
 
+```{r remove-2010}
+#Removing 2010 from all_data_gentrifying since we don't have deltas for those years and would need to fitler it every time otherwise
+all_data_gentrify_final <-  all_data_gentrify |> 
+  filter(year != 2010)
+
+all_data_gentrify_final
+```
+
 ```{r viz-enrollment}
 #Create the boxplot
 p1 <- all_data_gentrify_final |> 
