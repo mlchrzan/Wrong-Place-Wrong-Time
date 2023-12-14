@@ -416,3 +416,28 @@ all_data_gentrify_final |>
   theme(legend.position = 'none') + 
   coord_flip()
 ```
+
+```{r}
+#NOT SURE WE NEED THIS
+all_data_gentrify |> 
+  pivot_longer(cols = contains('percent_educational_attainment') & !contains("25_years_and_over") & contains('or_higher'), 
+               names_to = 'education_level', 
+               values_to = 'percent_at_level') |> 
+  mutate(education_level = str_replace_all(education_level, "percent_educational_attainment_percent_", ""),
+         education_level = str_replace_all(education_level, "high_school_graduate_or_higher", "Diploma/GED or Higher"), 
+         education_level = str_replace_all(education_level, "bachelors_degree_or_higher", "Bachelor's Degree or Higher")) |>
+  ggplot() + 
+  geom_col(aes(x = year,
+                y = percent_at_level), 
+           fill = 'darkgreen') + 
+  facet_grid(~education_level)
+```
+
+```{r checking-correlations}
+all_data_gentrify |> 
+  filter(year > 2010) |> 
+  select(contains('delta')) |> 
+  ggpairs()
+
+
+```

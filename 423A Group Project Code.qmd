@@ -736,7 +736,7 @@ all_data_gentrify |>
 
 ```
 
-```{r viz-ed-attain-demographic}
+```{r viz-ed-attain-demographic-columns}
 all_data_gentrify |> 
   pivot_longer(cols = contains('percent_educational_attainment') & !contains("25_years_and_over") & !contains('or_higher'), 
                names_to = 'education_level', 
@@ -769,7 +769,7 @@ all_data_gentrify |>
        y = "% of Population at Education Level")
 ```
 
-```{r}
+```{r viz-ed-attain-demographic-area}
 all_data_gentrify |> 
   pivot_longer(cols = contains('percent_educational_attainment') & !contains("25_years_and_over") & !contains('or_higher'), 
                names_to = 'education_level', 
@@ -801,23 +801,6 @@ all_data_gentrify |>
        x = "Year", 
        y = "% of Population at Education Level", 
        fill = 'Education Level')
-```
-
-```{r}
-#NOT SURE WE NEED THIS
-all_data_gentrify |> 
-  pivot_longer(cols = contains('percent_educational_attainment') & !contains("25_years_and_over") & contains('or_higher'), 
-               names_to = 'education_level', 
-               values_to = 'percent_at_level') |> 
-  mutate(education_level = str_replace_all(education_level, "percent_educational_attainment_percent_", ""),
-         education_level = str_replace_all(education_level, "high_school_graduate_or_higher", "Diploma/GED or Higher"), 
-         education_level = str_replace_all(education_level, "bachelors_degree_or_higher", "Bachelor's Degree or Higher")) |>
-  ggplot() + 
-  geom_col(aes(x = year,
-                y = percent_at_level), 
-           fill = 'darkgreen') + 
-  facet_grid(~education_level)
-
 ```
 
 ## Verifying Gentrification Part c - Increase in Housing Costs
@@ -860,26 +843,38 @@ p1 + p2 + plot_annotation(title = 'Changes in Housing Costs, Year over Year',
 ```{r correlation-of-deltas}
 all_data_gentrify |> 
   filter(year > 2010) |> 
-  select(contains('delta')) |> 
-  ggpairs()
-
-all_data_gentrify |> 
-  filter(year > 2010) |> 
   select(contains('delta')) |>
   ggcorr(method = c("everything", "pearson"), 
          high = "darkgreen")
 ```
 
 ```{r viz-all-4}
-all_data_gentrify |> 
-  filter(edu_level_delta > 0, 
-         housing_delta > 0) |> 
+all_data_gentrify |>
+  mutate(shape_category = ifelse(housing_delta > 0, 
+                                 "More Houses Built", 
+                                 "Less Houses Built"),
+         size_category = ifelse(edu_level_delta > 0, 
+                                "Increase in College Educated Individuals", 
+                                "Decrease in College Educated Individuals"),
+         gentrify_category = ifelse((rent_delta > 0 | value_delta > 0) 
+                                    & edu_level_delta > 0 
+                                    & housing_delta > 0, 
+                                    "Gentrifying", "Not Gentrifying")) |>
   ggplot() + 
   geom_point(aes(x = rent_delta, 
-                 y = value_delta, 
-                 color = housing_delta, 
-                 size = edu_level_delta)) +
-  scale_color_gradient(low = "lightgreen", high = "darkgreen")  +
+                 y = value_delta,
+                 color = gentrify_category, 
+                 size = size_category,
+                 shape = shape_category)) +
+  scale_color_manual(name = "Gentrification Criteria", 
+                     values = c("Not Gentrifying" = "gray",
+                                "Gentrifying" = "darkgreen")) +
+  scale_size_manual(name = "Educational Attainment Changes", 
+                    values = c("Increase in College Educated Individuals" = 5, 
+                               "Decrease in College Educated Individuals" = 2)) +
+  scale_shape_manual(name = "Housing Changes",
+                     values = c("Less Houses Built" = 15, "More Houses Built" = 17)) +
+  theme_minimal() +
   geom_vline(aes(xintercept = 0), linetype="dashed", color = "black") + 
   geom_hline(aes(yintercept = 0), linetype="dashed", color = "black") +
   theme_minimal() +
@@ -891,14 +886,7 @@ all_data_gentrify |>
        x = 'Change in Median Rent', 
        y = 'Change in Median Value', 
        color = 'Change in Housing Built', 
-       size = 'Change in Educational Attainment') + 
-  annotate("text", 
-           label = "Note: Years 2012, 2015-2017 not included\ndue to having negative changes\nin educational attainment and housing built",
-           x = 30,
-           y = -6000,
-           hjust = 1,
-           size = 2.25,
-           fontface = 'italic')
+       size = 'Change in Educational Attainment')
 ```
 
 ## Relationships with Educational Outcomes
