@@ -1046,41 +1046,6 @@ all_data_gentrify_grad_rate_pivot |>
        y = 'Graduation Rate') 
 ```
 
-```{r viz-drop-rate-by-time}
-all_data_gentrify_drop_rate_pivot <- all_data_gentrify_final |> 
-  pivot_longer(cols = contains("dropout"), 
-               names_to = 'dropout_rate_timeframe', 
-               values_to = 'dropout_rate') |> 
-  mutate(dropout_rate_timeframe = str_replace_all(dropout_rate_timeframe, 
-                                               "dropout_rate_4_year", 
-                                               "4 Year Droupout Rate"),
-         dropout_rate_timeframe = str_replace_all(dropout_rate_timeframe,
-                                               "dropout_rate_5_year", 
-                                               "5 Year Droupout Rate"),
-         dropout_rate_timeframe = str_replace_all(dropout_rate_timeframe,
-                                               "dropout_rate_6_year", 
-                                               "6 Year Droupout Rate")) 
-
-rm(all_data_gentrify_drop_rate_pivot)
-all_data_gentrify_drop_rate_pivot |> 
-  ggplot() +
-  geom_line(aes(x = year, 
-                y = dropout_rate), 
-            color = 'lightgreen', 
-            linewidth = 2) +
-  geom_point(data = filter(all_data_gentrify_drop_rate_pivot, as.character(gentrifying) == "TRUE"),
-             aes(x = year, 
-                 y = dropout_rate), 
-             color = 'darkgreen',
-             size = 3.5) +
-  facet_grid(~dropout_rate_timeframe) +
-  labs(title = "Gentrification's Relationship to Dropout Rate", 
-       #subtitle = 'Students Take Longer to Graduate in Gentriying Years', 
-       x = 'Year', 
-       y = 'Dropout Rate') 
-
-```
-
 ```{r viz-dropoutrate}
 all_data_gentrify_final |> 
   pivot_longer(cols = contains("dropout"), 
@@ -1104,6 +1069,40 @@ all_data_gentrify_final |>
        x = 'Dropout Rate Time Frame', 
        y = 'Dropout Rate') + 
   theme_minimal()
+```
+
+```{r viz-drop-rate-by-time}
+all_data_gentrify_drop_rate_pivot <- all_data_gentrify_final |> 
+  pivot_longer(cols = contains("dropout"), 
+               names_to = 'dropout_rate_timeframe', 
+               values_to = 'dropout_rate') |> 
+  mutate(dropout_rate_timeframe = str_replace_all(dropout_rate_timeframe, 
+                                               "dropout_rate_4_year", 
+                                               "4 Year Droupout Rate"),
+         dropout_rate_timeframe = str_replace_all(dropout_rate_timeframe,
+                                               "dropout_rate_5_year", 
+                                               "5 Year Droupout Rate"),
+         dropout_rate_timeframe = str_replace_all(dropout_rate_timeframe,
+                                               "dropout_rate_6_year", 
+                                               "6 Year Droupout Rate")) 
+
+all_data_gentrify_drop_rate_pivot |> 
+  ggplot() +
+  geom_line(aes(x = year, 
+                y = dropout_rate), 
+            color = 'lightgreen', 
+            linewidth = 2) +
+  geom_point(data = filter(all_data_gentrify_drop_rate_pivot, as.character(gentrifying) == "TRUE"),
+             aes(x = year, 
+                 y = dropout_rate), 
+             color = 'darkgreen',
+             size = 3.5) +
+  facet_grid(~dropout_rate_timeframe) +
+  labs(title = "Gentrification's Relationship to Dropout Rate", 
+       #subtitle = 'Students Take Longer to Graduate in Gentriying Years', 
+       x = 'Year', 
+       y = 'Dropout Rate') 
+
 ```
 
 ```{r viz-readiness-over-time}
