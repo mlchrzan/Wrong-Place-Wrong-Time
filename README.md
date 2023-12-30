@@ -1,6 +1,6 @@
 ## Wrong Place, Wrong Time - A EDUC 423A Group Project Studying the Relationship Between Gentrification and School Outcomes
 
-NOTE: Original Project One-Pager (final project code may reflect changes to plans laid out in this document)
+NOTE: Original Project One-Pager (final project code may reflect changes to plans laid out in this document, see final paper for results)
 
 Research Question | What relationship, if any, exists between gentrification, as operationalized by the Pearman and Greene (2022) model, and educational outcomes in San Francisco and Detroit between 2010 and 2020?
 
