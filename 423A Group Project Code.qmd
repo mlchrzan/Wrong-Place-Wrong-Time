@@ -972,7 +972,7 @@ all_data_gentrify_pct_ready_pivot <- all_data_gentrify_final |>
          subject_readiness = str_replace_all(subject_readiness, "english_percent_ready", "Percent Ready on English"),
          subject_readiness = str_replace_all(subject_readiness, "math_percent_ready", "Percent Ready on Math"))
 
-all_data_gentrify_pct_ready_pivot |> 
+plot <- all_data_gentrify_pct_ready_pivot |> 
   ggplot() + 
   geom_boxplot(aes(x = gentrifying, 
                    y = pct_ready, 
@@ -986,6 +986,10 @@ all_data_gentrify_pct_ready_pivot |>
        y = "Percent of Students 'Ready' for College Level Work") + 
   theme(legend.position = 'none') 
 
+ggsave("linkedinplot.png", plot = plot, 
+       width = 8, height = 4.5, dpi = 1200, 
+       bg = 'white')
+plot
 ```
 
 ```{r viz-gradrate}
